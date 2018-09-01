@@ -17,9 +17,16 @@ class PlayerShip: Entity {
         
         name = "playerShip"
         
+        collisionDamage = 5 // This is the collision damage if we run into something
+        
         // Details on how the Sprite Kit physics engine works can be found in the book in
         // Chapter 9, "Beginner Physics"
-        self.scale(to: CGSize(width: 64, height: 64))
+        if #available(iOS 10.0, *) {
+            self.scale(to: CGSize(width: 64, height: 64))
+        } else {
+            // Fallback on earlier versions
+            self.setScale(0.25)
+        }
         configureCollisionBody()
         ventingPlasma.isHidden = true
         //        damageEmitter.hidden = true

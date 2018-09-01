@@ -6,16 +6,16 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Last Outpost/GameScene.swift"
-            timestampString = "557359904.097136"
+            timestampString = "557457854.847941"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "398"
-            endingLineNumber = "398"
-            landmarkName = "setupEntities()"
+            startingLineNumber = "790"
+            endingLineNumber = "790"
+            landmarkName = "addBossBombers()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

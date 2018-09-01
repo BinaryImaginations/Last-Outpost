@@ -15,6 +15,18 @@
 		B923535F21389A5D0025D30E /* ventingPlasma.sks in Resources */ = {isa = PBXBuildFile; fileRef = B923535C21389A5D0025D30E /* ventingPlasma.sks */; };
 		B923536221389E7C0025D30E /* CGFloat+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = B923536021389E7C0025D30E /* CGFloat+Extensions.swift */; };
 		B923536321389E7C0025D30E /* CGPoint+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = B923536121389E7C0025D30E /* CGPoint+Extensions.swift */; };
+		B92353652139ADAC0025D30E /* BulletParticleLaser.swift in Sources */ = {isa = PBXBuildFile; fileRef = B92353642139ADAC0025D30E /* BulletParticleLaser.swift */; };
+		B92353672139C4500025D30E /* BulletRailGun.swift in Sources */ = {isa = PBXBuildFile; fileRef = B92353662139C4500025D30E /* BulletRailGun.swift */; };
+		B92353692139C4EA0025D30E /* BulletProtonLaser.swift in Sources */ = {isa = PBXBuildFile; fileRef = B92353682139C4EA0025D30E /* BulletProtonLaser.swift */; };
+		B923536B2139D41D0025D30E /* Enemy.swift in Sources */ = {isa = PBXBuildFile; fileRef = B923536A2139D41D0025D30E /* Enemy.swift */; };
+		B923536E2139D4720025D30E /* AISteering.swift in Sources */ = {isa = PBXBuildFile; fileRef = B923536D2139D4720025D30E /* AISteering.swift */; };
+		B92353702139D4BD0025D30E /* SKColor+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = B923536F2139D4BD0025D30E /* SKColor+Extensions.swift */; };
+		B92353722139D61E0025D30E /* EnemySwarmer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B92353712139D61E0025D30E /* EnemySwarmer.swift */; };
+		B92353742139F2530025D30E /* EnemyFighter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B92353732139F2530025D30E /* EnemyFighter.swift */; };
+		B92353762139F31D0025D30E /* EnemyScout.swift in Sources */ = {isa = PBXBuildFile; fileRef = B92353752139F31D0025D30E /* EnemyScout.swift */; };
+		B9235379213A03F90025D30E /* BulletProtonLaser2.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9235378213A03F90025D30E /* BulletProtonLaser2.swift */; };
+		B923537B213A10CE0025D30E /* EnemyBossBomber.swift in Sources */ = {isa = PBXBuildFile; fileRef = B923537A213A10CE0025D30E /* EnemyBossBomber.swift */; };
+		B923537D213A1CCF0025D30E /* EnemyBossFighter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B923537C213A1CCF0025D30E /* EnemyBossFighter.swift */; };
 		B943E3262136046E000777CD /* edunline.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B943E3252136046B000777CD /* edunline.ttf */; };
 		B943E32A21360489000777CD /* laser.wav in Resources */ = {isa = PBXBuildFile; fileRef = B943E32721360476000777CD /* laser.wav */; };
 		B943E32B2136048C000777CD /* explode.wav in Resources */ = {isa = PBXBuildFile; fileRef = B943E32921360476000777CD /* explode.wav */; };
@@ -56,6 +68,18 @@
 		B923535C21389A5D0025D30E /* ventingPlasma.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = ventingPlasma.sks; sourceTree = "<group>"; };
 		B923536021389E7C0025D30E /* CGFloat+Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CGFloat+Extensions.swift"; sourceTree = "<group>"; };
 		B923536121389E7C0025D30E /* CGPoint+Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CGPoint+Extensions.swift"; sourceTree = "<group>"; };
+		B92353642139ADAC0025D30E /* BulletParticleLaser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BulletParticleLaser.swift; sourceTree = "<group>"; };
+		B92353662139C4500025D30E /* BulletRailGun.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BulletRailGun.swift; sourceTree = "<group>"; };
+		B92353682139C4EA0025D30E /* BulletProtonLaser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BulletProtonLaser.swift; sourceTree = "<group>"; };
+		B923536A2139D41D0025D30E /* Enemy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Enemy.swift; sourceTree = "<group>"; };
+		B923536D2139D4720025D30E /* AISteering.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AISteering.swift; sourceTree = "<group>"; };
+		B923536F2139D4BD0025D30E /* SKColor+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SKColor+Extensions.swift"; sourceTree = "<group>"; };
+		B92353712139D61E0025D30E /* EnemySwarmer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnemySwarmer.swift; sourceTree = "<group>"; };
+		B92353732139F2530025D30E /* EnemyFighter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnemyFighter.swift; sourceTree = "<group>"; };
+		B92353752139F31D0025D30E /* EnemyScout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnemyScout.swift; sourceTree = "<group>"; };
+		B9235378213A03F90025D30E /* BulletProtonLaser2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BulletProtonLaser2.swift; sourceTree = "<group>"; };
+		B923537A213A10CE0025D30E /* EnemyBossBomber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnemyBossBomber.swift; sourceTree = "<group>"; };
+		B923537C213A1CCF0025D30E /* EnemyBossFighter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnemyBossFighter.swift; sourceTree = "<group>"; };
 		B943E3252136046B000777CD /* edunline.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = edunline.ttf; sourceTree = "<group>"; };
 		B943E32721360476000777CD /* laser.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = laser.wav; sourceTree = "<group>"; };
 		B943E32821360476000777CD /* bgMusic.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = bgMusic.mp3; sourceTree = "<group>"; };
@@ -115,6 +139,16 @@
 			children = (
 				B9235352213896DB0025D30E /* Entity.swift */,
 				B9235354213896F00025D30E /* PlayerShip.swift */,
+				B92353642139ADAC0025D30E /* BulletParticleLaser.swift */,
+				B92353682139C4EA0025D30E /* BulletProtonLaser.swift */,
+				B9235378213A03F90025D30E /* BulletProtonLaser2.swift */,
+				B92353662139C4500025D30E /* BulletRailGun.swift */,
+				B923536A2139D41D0025D30E /* Enemy.swift */,
+				B92353752139F31D0025D30E /* EnemyScout.swift */,
+				B92353732139F2530025D30E /* EnemyFighter.swift */,
+				B92353712139D61E0025D30E /* EnemySwarmer.swift */,
+				B923537A213A10CE0025D30E /* EnemyBossBomber.swift */,
+				B923537C213A1CCF0025D30E /* EnemyBossFighter.swift */,
 			);
 			path = Entities;
 			sourceTree = "<group>";
@@ -125,6 +159,7 @@
 				B923536021389E7C0025D30E /* CGFloat+Extensions.swift */,
 				B923536121389E7C0025D30E /* CGPoint+Extensions.swift */,
 				B9235357213899710025D30E /* SKTAudio.swift */,
+				B923536F2139D4BD0025D30E /* SKColor+Extensions.swift */,
 			);
 			path = SKTUtils;
 			sourceTree = "<group>";
@@ -137,6 +172,14 @@
 				B923535C21389A5D0025D30E /* ventingPlasma.sks */,
 			);
 			path = Particles;
+			sourceTree = "<group>";
+		};
+		B923536C2139D4520025D30E /* AI */ = {
+			isa = PBXGroup;
+			children = (
+				B923536D2139D4720025D30E /* AISteering.swift */,
+			);
+			path = AI;
 			sourceTree = "<group>";
 		};
 		B943E32D213604D5000777CD /* Fonts */ = {
@@ -180,6 +223,7 @@
 		B9BC75552135D1370024666F /* Last Outpost */ = {
 			isa = PBXGroup;
 			children = (
+				B923536C2139D4520025D30E /* AI */,
 				B923535921389A0A0025D30E /* Particles */,
 				B92353562138994F0025D30E /* SKTUtils */,
 				B9235351213896910025D30E /* Entities */,
@@ -354,11 +398,23 @@
 			files = (
 				B9235353213896DB0025D30E /* Entity.swift in Sources */,
 				B9BC755D2135D1370024666F /* GameScene.swift in Sources */,
+				B92353762139F31D0025D30E /* EnemyScout.swift in Sources */,
+				B92353672139C4500025D30E /* BulletRailGun.swift in Sources */,
+				B923536E2139D4720025D30E /* AISteering.swift in Sources */,
+				B92353742139F2530025D30E /* EnemyFighter.swift in Sources */,
 				B923536321389E7C0025D30E /* CGPoint+Extensions.swift in Sources */,
+				B92353692139C4EA0025D30E /* BulletProtonLaser.swift in Sources */,
+				B92353652139ADAC0025D30E /* BulletParticleLaser.swift in Sources */,
 				B923536221389E7C0025D30E /* CGFloat+Extensions.swift in Sources */,
 				B9BC755F2135D1370024666F /* GameViewController.swift in Sources */,
+				B923537D213A1CCF0025D30E /* EnemyBossFighter.swift in Sources */,
+				B92353702139D4BD0025D30E /* SKColor+Extensions.swift in Sources */,
+				B923536B2139D41D0025D30E /* Enemy.swift in Sources */,
+				B92353722139D61E0025D30E /* EnemySwarmer.swift in Sources */,
+				B9235379213A03F90025D30E /* BulletProtonLaser2.swift in Sources */,
 				B9235358213899710025D30E /* SKTAudio.swift in Sources */,
 				B9BC75572135D1370024666F /* AppDelegate.swift in Sources */,
+				B923537B213A10CE0025D30E /* EnemyBossBomber.swift in Sources */,
 				B9235355213896F00025D30E /* PlayerShip.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -527,6 +583,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = SQ56632BKB;
 				INFOPLIST_FILE = "Last Outpost/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -545,6 +602,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = SQ56632BKB;
 				INFOPLIST_FILE = "Last Outpost/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

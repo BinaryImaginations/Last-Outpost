@@ -29,13 +29,15 @@ import AVFoundation
 open class SKTAudio {
     open var backgroundMusicPlayer: AVAudioPlayer?
     open var soundEffectPlayer: AVAudioPlayer?
+    var volume: Float = 1.0
     
     open class func sharedInstance() -> SKTAudio {
         return SKTAudioInstance
     }
     
-    open func playBackgroundMusic(_ filename: String) {
+    open func playBackgroundMusic(_ filename: String, _ volume: Float) {
         let url = Bundle.main.url(forResource: filename, withExtension: nil)
+        self.volume = volume
         if (url == nil) {
             print("Could not find file: \(filename)")
             return
@@ -51,6 +53,7 @@ open class SKTAudio {
         if let player = backgroundMusicPlayer {
             player.numberOfLoops = -1
             player.prepareToPlay()
+            player.volume = self.volume
             player.play()
         } else {
             print("Could not create audio player: \(error!)")
@@ -73,7 +76,15 @@ open class SKTAudio {
         }
     }
     
-    open func playSoundEffect(_ filename: String) {
+    open func setBackgroundMusicVolume(_ volume: Float) {
+        if let player = backgroundMusicPlayer {
+            player.volume = volume
+            self.volume = volume
+        }
+    }
+    
+
+    open func playSoundEffect(_ filename: String, _ volume: Float) {
         let url = Bundle.main.url(forResource: filename, withExtension: nil)
         if (url == nil) {
             print("Could not find file: \(filename)")
@@ -90,6 +101,7 @@ open class SKTAudio {
         if let player = soundEffectPlayer {
             player.numberOfLoops = 0
             player.prepareToPlay()
+            player.volume = volume
             player.play()
         } else {
             print("Could not create audio player: \(error!)")

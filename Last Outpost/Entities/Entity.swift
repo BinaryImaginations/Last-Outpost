@@ -25,8 +25,9 @@ class Entity: SKSpriteNode {
     var health = 100.0
     var maxHealth = 100.0
     var score = 0
+    var funds = 0
     var lives = 1  // Number of times to respawn
-    var attackDamage = 1
+    var collisionDamage = 1
     
     init(position: CGPoint, texture: SKTexture) {
         super.init(texture: texture, color: SKColor.white, size: texture.size())
