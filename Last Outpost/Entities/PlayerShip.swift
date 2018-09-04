@@ -10,6 +10,9 @@ import SpriteKit
 
 class PlayerShip: Entity {
     
+    let ventingPlasma:SKEmitterNode = SKEmitterNode(fileNamed: "ventingPlasma.sks")!
+    let damageEmitter:SKEmitterNode = SKEmitterNode(fileNamed: "ventingPlasma.sks")!
+    
     init(entityPosition: CGPoint) {
         let entityTexture = PlayerShip.generateTexture()!
         
@@ -22,24 +25,22 @@ class PlayerShip: Entity {
         // Details on how the Sprite Kit physics engine works can be found in the book in
         // Chapter 9, "Beginner Physics"
         if #available(iOS 10.0, *) {
-            self.scale(to: CGSize(width: 64, height: 64))
+           // self.scale(to: CGSize(width: 64, height: 64))
+            self.setScale(1)
         } else {
             // Fallback on earlier versions
-            self.setScale(0.25)
+            self.setScale(1)
         }
         configureCollisionBody()
         ventingPlasma.isHidden = true
-        //        damageEmitter.hidden = true
+        damageEmitter.isHidden = true
         self.addChild(ventingPlasma)
-        //        self.addChild(damageEmitter)
+        self.addChild(damageEmitter)
     }
     
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
     }
-    
-    let ventingPlasma:SKEmitterNode = SKEmitterNode(fileNamed: "ventingPlasma.sks")!
-    //    let damageEmitter:SKEmitterNode = SKEmitterNode(fileNamed: "ventingPlasma.sks")!
     
     override class func generateTexture() -> SKTexture? {
         // 1
@@ -49,17 +50,49 @@ class PlayerShip: Entity {
         }
         
         DispatchQueue.once(token: SharedTexture.onceToken) {
-            let spaceshipSprite = SKSpriteNode(imageNamed: "Spaceship")
-            SharedTexture.texture = spaceshipSprite.texture!
+            // Use an image for the ship
+//            let spaceshipSprite = SKSpriteNode(imageNamed: "Spaceship")
+//            SharedTexture.texture = textureView.textureFromNode(mainShip)!
+            // Use ASCII for the ship
+            let mainShip = SKLabelNode(fontNamed: "Arial")
+            mainShip.name = "mainship"
+            mainShip.fontSize = 40
+            mainShip.fontColor = SKColor.white
+            mainShip.text = "▲"
+            // 3
+            let wings = SKLabelNode(fontNamed: "PF TempestaSeven")
+            wings.name = "wings"
+            wings.fontSize = 40
+            wings.text = "< >"
+            wings.fontColor = SKColor.white
+            wings.position = CGPoint(x: 1, y: 7)
+            // 4
+            wings.zRotation = CGFloat(180).degreesToRadians()
+
+            mainShip.addChild(wings)
+            // 5
+            let textureView = SKView()
+            
+            SharedTexture.texture =
+                textureView.texture(from: mainShip)!
             SharedTexture.texture.filteringMode = .nearest
         }
-        
         return SharedTexture.texture
     }
     
     func configureCollisionBody() {
         // Set up the physics body for this entity using a circle around the ship
-        physicsBody = SKPhysicsBody(circleOfRadius: self.size.width/2)
+        // physicsBody = SKPhysicsBody(circleOfRadius: self.size.width/2)
+        // Using this method results in the ship registering a collision for every pixel hit.
+        // physicsBody = SKPhysicsBody(texture: self.texture!, size: self.size)
+        let path = CGMutablePath()
+        path.addLines(between: [CGPoint(x: -self.size.width/2, y: -self.size.height/2),
+                                CGPoint(x: self.size.width/2, y: -self.size.height/2),
+                                CGPoint(x: self.size.width/20, y: self.size.height/2),
+                                CGPoint(x: -self.size.width/2, y: -self.size.height/2)])
+        path.closeSubpath()
+        physicsBody = SKPhysicsBody(polygonFrom: path)
+
         
         // There is no gravity in the game so it shoud be switched off for this physics body
         physicsBody!.affectedByGravity = false
@@ -91,12 +124,14 @@ class PlayerShip: Entity {
         }
         
         ventingPlasma.isHidden = health > 30
-        
-        //        damageEmitter.setScale(CGFloat(1.5))
-        //        damageEmitter.hidden = false
-        //        damageEmitter.alpha = 1.0
-        //        damageEmitter.runAction(SKAction.sequence([SKAction.fadeOutWithDuration(1.0),SKAction.hide()]))
-        //        damageEmitter.resetSimulation()
+        if (health <= 30) {
+            print("Vent plasma! \(health):\(damage) \(ventingPlasma.isHidden)")
+        }
+        damageEmitter.setScale(CGFloat(1.5))
+        damageEmitter.isHidden = false
+        damageEmitter.alpha = 1.0
+        damageEmitter.run(SKAction.sequence([SKAction.fadeOut(withDuration: 1.0),SKAction.hide()]))
+        damageEmitter.resetSimulation()
         
         mainScene.playExplodeSound()
     }

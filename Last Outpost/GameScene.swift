@@ -49,7 +49,7 @@ enum GameDifficulty: Double {
 }
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
-    let startingWave: Int = 50 // Used for setting a starting level if you want to debug it
+    let startingWave: Int = 1 // Used for setting a starting level if you want to debug it
     // We can use this to increase/decrease the player difficulty. The smaller the number, the faster
     // the screen should do updates for the enemies.  We use the value from this enum to multiply
     // against objects during game play.
@@ -414,7 +414,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             levelLabel.removeFromParent()
             tapScreenLabel.removeFromParent()
             
-            printNodes()
+            // printNodes()
             
             // Set the state to transitioning
             gameState = .transitioning

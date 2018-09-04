@@ -21,7 +21,7 @@ class EnemyFighter: Enemy, SKPhysicsContactDelegate {
             let mainShip:SKLabelNode = SKLabelNode(fontNamed: "Arial")
             mainShip.name = "mainship"
             mainShip.fontSize = 25
-            mainShip.fontColor = SKColor.yellow
+            mainShip.fontColor = SKColor.lightGray
             mainShip.text = "(x⚇x)"
             
             let textureView = SKView()
