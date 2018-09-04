@@ -20,7 +20,7 @@ class EnemyScout: Enemy, SKPhysicsContactDelegate {
         DispatchQueue.once(token: SharedTexture.onceToken) {
             let mainShip:SKLabelNode = SKLabelNode(fontNamed: "Arial")
             mainShip.name = "mainship"
-            mainShip.fontSize = 30
+            mainShip.fontSize = 25
             mainShip.fontColor = SKColor.white
             mainShip.text = "(=⚇=)"
             
@@ -41,7 +41,7 @@ class EnemyScout: Enemy, SKPhysicsContactDelegate {
         let entityTexture = EnemyScout.generateTexture()!
         super.init(entityPosition: entityPosition, texture: entityTexture, playableRect: playableRect)
         
-        name = "enemy"
+        name = EntityClassName.EnemyShip.rawValue
         score = 100
         funds = 25
         collisionDamage = 4
@@ -51,7 +51,7 @@ class EnemyScout: Enemy, SKPhysicsContactDelegate {
         configureCollisionBody()
         
         scoreLabel.name = "scoreLabel"
-        scoreLabel.fontSize = 30
+        scoreLabel.fontSize = 25
         scoreLabel.fontColor = SKColor(red: 0.5, green: 1, blue: 1, alpha: 1)
         scoreLabel.text = String(score)
         

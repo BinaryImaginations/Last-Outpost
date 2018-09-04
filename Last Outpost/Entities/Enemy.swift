@@ -21,7 +21,15 @@ class Enemy : Entity {
     var aiSteering: AISteering!
     var playableRect: CGRect!
     var dead = false
-    
+    var spawnDelay: TimeInterval = 0
+    var spawnTime: TimeInterval = 0
+    var spawned: Bool = false
+    var railGun: Bool = false
+    var staticGun: Bool = false
+    var railGunFireInterval: TimeInterval = 0.0
+    var railGunTimeLastFired: TimeInterval = 0.0
+    var staticGunFireInterval: TimeInterval = 0.0
+    var staticGunTimeLastFired: TimeInterval = 0.0
     
     enum EnemyClass {
         case mini
@@ -89,6 +97,9 @@ class Enemy : Entity {
         
         self.playableRect = playableRect
         
+        // Set the current time as the spawn time
+        spawnTime = Date().timeIntervalSince1970
+        
         // Setup the label that shows how much health an enemy has
         healthMeterLabel.name = "healthMeter"
         healthMeterLabel.fontSize = 20
@@ -104,17 +115,32 @@ class Enemy : Entity {
     }
     
     override func update(_ delta: TimeInterval) {
+        let currentTime: TimeInterval = Date().timeIntervalSince1970
+        
+        // If we have a spawn delay
+        if (spawnDelay > 0) {
+            // If the current time minus the spawn time is less than the spawn delay, then
+            // return without doing anything
+            if (currentTime - spawnTime <= spawnDelay) {
+                return
+            } else {
+                spawned = true
+            }
+        }
         
         // If the player has been marked as dead then reposition them at the top of the screen and
         // mark them a no longer being dead
         if (dead) {
-            if (lives - 1 == 0) {
+            if (lives - 1 < 1) {
                 removeFromParent()
             } else {
                 dead = false
                 position = CGPoint(x: CGFloat.random(min:playableRect.origin.x, max:playableRect.size.width),
                                    y: playableRect.size.height+100)
                 lives = (lives > 0 ? lives - 1 : lives)
+                // Set the spawn time
+                spawnTime = currentTime
+                spawned = false
             }
         }
         
@@ -136,8 +162,8 @@ class Enemy : Entity {
         // Update the health meter for the enemy
         let healthBarLength = 8.0 * (health / maxHealth)
         healthMeterLabel.text = "\(healthMeterText.substring(to: Int(healthBarLength)))"
-        healthMeterLabel.fontColor = SKColor(red: CGFloat(2 * (1 - health / 100)),
-                                             green:CGFloat(2 * health / 100), blue:0, alpha:1)
+        healthMeterLabel.fontColor = SKColor(red: CGFloat(2 * (1 - health / maxHealth)),
+                                             green:CGFloat(2 * health / maxHealth), blue:0, alpha:1)
     }
     
     func configureCollisionBody() {
@@ -154,7 +180,13 @@ class Enemy : Entity {
         physicsBody!.contactTestBitMask = ColliderType.Player | ColliderType.PlayerBullet
     }
     
+    //
+    // This method handles when this object collides with another
     override func collidedWith(_ body: SKPhysicsBody, contact: SKPhysicsContact, damage: Int = 10) {
+        // If we haven't spawned yet, don't let them hit us
+        if (!spawned) {
+            return
+        }
         
         // When an enemy gets hit we grab the point at which the enemy was hit
         let localContactPoint:CGPoint = self.scene!.convert(contact.contactPoint, to: self)
@@ -210,6 +242,16 @@ class Enemy : Entity {
             deathEmitter.isHidden = false
             deathEmitter.resetSimulation()
             mainScene.playExplodeSound()
+        }
+    }
+    
+    //
+    // Set the spawn delay on this object.  We use the spawn delay to spread out the spawn rate of the enemies
+    // so that we don't get 50 enemies all attacking in the first second.
+    func setSpawnDelay(_ delay: TimeInterval) {
+        // If we have a positive number, set the delay
+        if (delay > 0) {
+            spawnDelay = delay
         }
     }
 }

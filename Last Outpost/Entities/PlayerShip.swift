@@ -15,7 +15,7 @@ class PlayerShip: Entity {
         
         super.init(position: entityPosition, texture: entityTexture)
         
-        name = "playerShip"
+        name = EntityClassName.PlayerShip.rawValue
         
         collisionDamage = 5 // This is the collision damage if we run into something
         
@@ -75,7 +75,7 @@ class PlayerShip: Entity {
         // Specify physics bodies we want this entity to be able to collide with. Specifying Enemy
         // means that the physics collision method inside GameScene will be called when this entity
         // collides with an Entity that is marked as ColliderType.Enemy
-        physicsBody!.contactTestBitMask = ColliderType.Enemy
+        physicsBody!.contactTestBitMask = ColliderType.Enemy | ColliderType.EnemyBullet
     }
     
     override func collidedWith(_ body: SKPhysicsBody, contact: SKPhysicsContact, damage: Int = 5) {

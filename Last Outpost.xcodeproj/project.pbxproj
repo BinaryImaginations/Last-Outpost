@@ -30,7 +30,17 @@
 		B943E3262136046E000777CD /* edunline.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B943E3252136046B000777CD /* edunline.ttf */; };
 		B943E32A21360489000777CD /* laser.wav in Resources */ = {isa = PBXBuildFile; fileRef = B943E32721360476000777CD /* laser.wav */; };
 		B943E32B2136048C000777CD /* explode.wav in Resources */ = {isa = PBXBuildFile; fileRef = B943E32921360476000777CD /* explode.wav */; };
-		B943E32C2136048E000777CD /* bgMusic.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B943E32821360476000777CD /* bgMusic.mp3 */; };
+		B943E32C2136048E000777CD /* bgmusic.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B943E32821360476000777CD /* bgmusic.mp3 */; };
+		B9752CB3213BA44800EDA3B0 /* levelcomplete.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B9752CB2213BA44800EDA3B0 /* levelcomplete.mp3 */; };
+		B9752CB5213BA5CA00EDA3B0 /* gameover.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B9752CB4213BA5CA00EDA3B0 /* gameover.mp3 */; };
+		B9752CB7213BA7A400EDA3B0 /* SKAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9752CB6213BA7A400EDA3B0 /* SKAction.swift */; };
+		B9752CB9213BB11F00EDA3B0 /* electricshock.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B9752CB8213BB11F00EDA3B0 /* electricshock.mp3 */; };
+		B9752CBB213BB28F00EDA3B0 /* EnemyBulletRailGun.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9752CBA213BB28F00EDA3B0 /* EnemyBulletRailGun.swift */; };
+		B9752CBD213C4E8800EDA3B0 /* spark.png in Resources */ = {isa = PBXBuildFile; fileRef = B9752CBC213C4E8800EDA3B0 /* spark.png */; };
+		B9752CBF213CBEE700EDA3B0 /* EnemyBulletStaticGun.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9752CBE213CBEE700EDA3B0 /* EnemyBulletStaticGun.swift */; };
+		B9752CC1213CF61300EDA3B0 /* electriccurrent.wav in Resources */ = {isa = PBXBuildFile; fileRef = B9752CC0213CF61300EDA3B0 /* electriccurrent.wav */; };
+		B9752CC3213D9AA200EDA3B0 /* Bullet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9752CC2213D9AA200EDA3B0 /* Bullet.swift */; };
+		B9752CC5213DA43600EDA3B0 /* pew.wav in Resources */ = {isa = PBXBuildFile; fileRef = B9752CC4213DA43600EDA3B0 /* pew.wav */; };
 		B9BC75572135D1370024666F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9BC75562135D1370024666F /* AppDelegate.swift */; };
 		B9BC755D2135D1370024666F /* GameScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9BC755C2135D1370024666F /* GameScene.swift */; };
 		B9BC755F2135D1370024666F /* GameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9BC755E2135D1370024666F /* GameViewController.swift */; };
@@ -82,8 +92,18 @@
 		B923537C213A1CCF0025D30E /* EnemyBossFighter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnemyBossFighter.swift; sourceTree = "<group>"; };
 		B943E3252136046B000777CD /* edunline.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = edunline.ttf; sourceTree = "<group>"; };
 		B943E32721360476000777CD /* laser.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = laser.wav; sourceTree = "<group>"; };
-		B943E32821360476000777CD /* bgMusic.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = bgMusic.mp3; sourceTree = "<group>"; };
+		B943E32821360476000777CD /* bgmusic.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = bgmusic.mp3; sourceTree = "<group>"; };
 		B943E32921360476000777CD /* explode.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = explode.wav; sourceTree = "<group>"; };
+		B9752CB2213BA44800EDA3B0 /* levelcomplete.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = levelcomplete.mp3; sourceTree = "<group>"; };
+		B9752CB4213BA5CA00EDA3B0 /* gameover.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = gameover.mp3; sourceTree = "<group>"; };
+		B9752CB6213BA7A400EDA3B0 /* SKAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKAction.swift; sourceTree = "<group>"; };
+		B9752CB8213BB11F00EDA3B0 /* electricshock.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = electricshock.mp3; sourceTree = "<group>"; };
+		B9752CBA213BB28F00EDA3B0 /* EnemyBulletRailGun.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnemyBulletRailGun.swift; sourceTree = "<group>"; };
+		B9752CBC213C4E8800EDA3B0 /* spark.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = spark.png; sourceTree = "<group>"; };
+		B9752CBE213CBEE700EDA3B0 /* EnemyBulletStaticGun.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnemyBulletStaticGun.swift; sourceTree = "<group>"; };
+		B9752CC0213CF61300EDA3B0 /* electriccurrent.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = electriccurrent.wav; sourceTree = "<group>"; };
+		B9752CC2213D9AA200EDA3B0 /* Bullet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bullet.swift; sourceTree = "<group>"; };
+		B9752CC4213DA43600EDA3B0 /* pew.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = pew.wav; sourceTree = "<group>"; };
 		B9BC75532135D1370024666F /* Last Outpost.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Last Outpost.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B9BC75562135D1370024666F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		B9BC755C2135D1370024666F /* GameScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameScene.swift; sourceTree = "<group>"; };
@@ -137,6 +157,7 @@
 		B9235351213896910025D30E /* Entities */ = {
 			isa = PBXGroup;
 			children = (
+				B9752CC2213D9AA200EDA3B0 /* Bullet.swift */,
 				B9235352213896DB0025D30E /* Entity.swift */,
 				B9235354213896F00025D30E /* PlayerShip.swift */,
 				B92353642139ADAC0025D30E /* BulletParticleLaser.swift */,
@@ -149,6 +170,8 @@
 				B92353712139D61E0025D30E /* EnemySwarmer.swift */,
 				B923537A213A10CE0025D30E /* EnemyBossBomber.swift */,
 				B923537C213A1CCF0025D30E /* EnemyBossFighter.swift */,
+				B9752CBA213BB28F00EDA3B0 /* EnemyBulletRailGun.swift */,
+				B9752CBE213CBEE700EDA3B0 /* EnemyBulletStaticGun.swift */,
 			);
 			path = Entities;
 			sourceTree = "<group>";
@@ -160,6 +183,7 @@
 				B923536121389E7C0025D30E /* CGPoint+Extensions.swift */,
 				B9235357213899710025D30E /* SKTAudio.swift */,
 				B923536F2139D4BD0025D30E /* SKColor+Extensions.swift */,
+				B9752CB6213BA7A400EDA3B0 /* SKAction.swift */,
 			);
 			path = SKTUtils;
 			sourceTree = "<group>";
@@ -167,6 +191,7 @@
 		B923535921389A0A0025D30E /* Particles */ = {
 			isa = PBXGroup;
 			children = (
+				B9752CBC213C4E8800EDA3B0 /* spark.png */,
 				B923535B21389A5C0025D30E /* enemyDeath.sks */,
 				B923535A21389A5C0025D30E /* engine.sks */,
 				B923535C21389A5D0025D30E /* ventingPlasma.sks */,
@@ -193,7 +218,12 @@
 		B943E32E213604DD000777CD /* Sounds */ = {
 			isa = PBXGroup;
 			children = (
-				B943E32821360476000777CD /* bgMusic.mp3 */,
+				B9752CC4213DA43600EDA3B0 /* pew.wav */,
+				B9752CC0213CF61300EDA3B0 /* electriccurrent.wav */,
+				B9752CB8213BB11F00EDA3B0 /* electricshock.mp3 */,
+				B9752CB4213BA5CA00EDA3B0 /* gameover.mp3 */,
+				B9752CB2213BA44800EDA3B0 /* levelcomplete.mp3 */,
+				B943E32821360476000777CD /* bgmusic.mp3 */,
 				B943E32921360476000777CD /* explode.wav */,
 				B943E32721360476000777CD /* laser.wav */,
 			);
@@ -363,14 +393,20 @@
 			files = (
 				B943E32A21360489000777CD /* laser.wav in Resources */,
 				B943E3262136046E000777CD /* edunline.ttf in Resources */,
-				B943E32C2136048E000777CD /* bgMusic.mp3 in Resources */,
+				B943E32C2136048E000777CD /* bgmusic.mp3 in Resources */,
+				B9752CBD213C4E8800EDA3B0 /* spark.png in Resources */,
 				B943E32B2136048C000777CD /* explode.wav in Resources */,
 				B923535E21389A5D0025D30E /* enemyDeath.sks in Resources */,
 				B9BC758F2135D4F90024666F /* LaunchScreen.xib in Resources */,
+				B9752CB3213BA44800EDA3B0 /* levelcomplete.mp3 in Resources */,
 				B9BC75622135D1370024666F /* Main.storyboard in Resources */,
+				B9752CB5213BA5CA00EDA3B0 /* gameover.mp3 in Resources */,
 				B9BC75642135D13B0024666F /* Images.xcassets in Resources */,
+				B9752CC1213CF61300EDA3B0 /* electriccurrent.wav in Resources */,
 				B923535D21389A5D0025D30E /* engine.sks in Resources */,
 				B923535F21389A5D0025D30E /* ventingPlasma.sks in Resources */,
+				B9752CB9213BB11F00EDA3B0 /* electricshock.mp3 in Resources */,
+				B9752CC5213DA43600EDA3B0 /* pew.wav in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -398,6 +434,7 @@
 			files = (
 				B9235353213896DB0025D30E /* Entity.swift in Sources */,
 				B9BC755D2135D1370024666F /* GameScene.swift in Sources */,
+				B9752CB7213BA7A400EDA3B0 /* SKAction.swift in Sources */,
 				B92353762139F31D0025D30E /* EnemyScout.swift in Sources */,
 				B92353672139C4500025D30E /* BulletRailGun.swift in Sources */,
 				B923536E2139D4720025D30E /* AISteering.swift in Sources */,
@@ -412,10 +449,13 @@
 				B923536B2139D41D0025D30E /* Enemy.swift in Sources */,
 				B92353722139D61E0025D30E /* EnemySwarmer.swift in Sources */,
 				B9235379213A03F90025D30E /* BulletProtonLaser2.swift in Sources */,
+				B9752CBF213CBEE700EDA3B0 /* EnemyBulletStaticGun.swift in Sources */,
 				B9235358213899710025D30E /* SKTAudio.swift in Sources */,
 				B9BC75572135D1370024666F /* AppDelegate.swift in Sources */,
 				B923537B213A10CE0025D30E /* EnemyBossBomber.swift in Sources */,
+				B9752CBB213BB28F00EDA3B0 /* EnemyBulletRailGun.swift in Sources */,
 				B9235355213896F00025D30E /* PlayerShip.swift in Sources */,
+				B9752CC3213D9AA200EDA3B0 /* Bullet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

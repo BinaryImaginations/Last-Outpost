@@ -21,7 +21,7 @@ class EnemyBossFighter: Enemy, SKPhysicsContactDelegate {
         DispatchQueue.once(token: SharedTexture.onceToken) {
             let mainShip:SKLabelNode = SKLabelNode(fontNamed: "Arial")
             mainShip.name = "mainship"
-            mainShip.fontSize = 38
+            mainShip.fontSize = 33
             mainShip.fontColor = SKColor.green
             mainShip.text = "(-oo-⚉-oo-)"
             
@@ -42,7 +42,7 @@ class EnemyBossFighter: Enemy, SKPhysicsContactDelegate {
         let entityTexture = EnemyBossFighter.generateTexture()!
         super.init(entityPosition: entityPosition, texture: entityTexture, playableRect: playableRect)
         
-        name = "enemy"
+        name = EntityClassName.EnemyShip.rawValue
         score = 750
         funds = 500
         collisionDamage = 20
@@ -52,9 +52,12 @@ class EnemyBossFighter: Enemy, SKPhysicsContactDelegate {
         configureCollisionBody()
         
         scoreLabel.name = "scoreLabel"
-        scoreLabel.fontSize = 50
+        scoreLabel.fontSize = 25
         scoreLabel.fontColor = SKColor(red: 0.5, green: 1, blue: 1, alpha: 1)
         scoreLabel.text = String(score)
+        
+        railGun = true
+        railGunFireInterval = 0.5
         
         // Set a default waypoint. The actual waypoint will be called by whoever created this instance
         aiSteering = AISteering(entity: self, waypoint: CGPoint.zero)

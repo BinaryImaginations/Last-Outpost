@@ -8,17 +8,17 @@
 
 import SpriteKit
 
-class BulletRailGun: Entity {
-    let damage: Int = 1  // 1 points of damage
+class BulletRailGun: Bullet {
     
     init(entityPosition: CGPoint) {
         let entityTexture = BulletRailGun.generateTexture()!
         
         super.init(position: entityPosition, texture: entityTexture)
         
-        name = "playerBullet"
+        name = EntityClassName.PlayerBullet.rawValue
 
         collisionDamage = 1
+        damage = 1
         configureCollisionBody()
     }
     

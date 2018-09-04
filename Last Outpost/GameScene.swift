@@ -15,6 +15,8 @@ enum GameState {
     case gameRunning
     case gameOver
     case waveComplete
+    case readyToStartWave
+    case transitioning
 }
 
 enum PlayerCenterLaserCannonState {
@@ -47,7 +49,12 @@ enum GameDifficulty: Double {
 }
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
-    let startingWave: Int = 1 // Used for setting a starting level if you want to debug it
+    let startingWave: Int = 50 // Used for setting a starting level if you want to debug it
+    // We can use this to increase/decrease the player difficulty. The smaller the number, the faster
+    // the screen should do updates for the enemies.  We use the value from this enum to multiply
+    // against objects during game play.
+    var programDifficulty: GameDifficulty = .normal
+    
     
     // Screen nodes:
     let playerLayerNode = SKNode()  // Contains the player ship images and effects
@@ -57,28 +64,32 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var enemyLayerNode = SKNode()  // Contains the enemy ship images and effects
     let starfieldLayerNode = SKNode()  // Contains the starfield particles (background)
     
-    let playableRect: CGRect  // Defined playable area of the screen (screen size)
+    var playableRect: CGRect = CGRect(x: 0, y: 0, width: 0, height: 0) // Defined playable area of the screen (screen size)
     let hudHeight: CGFloat = 90  // Total height of the HUD (subtracted from the play area size)
-    var musicVolume: Float = 0.8 // Play music at only 80%
-    var specialEffectsVolume: Float = 1.0 // Play these at 100%
-    var laserVolume: Float = 0.8  // Laser volume
+    var musicVolume: Float = 0.5
+    var specialEffectsVolume: Float = 1.0
+    var laserVolume: Float = 0.5  // Laser volume
     
     var gameState = GameState.splashScreen  // Current game state
     
     // The executiong time and governor variables are used to control the speed of the objects
     // during the game.  These variables allow us to try and standarize on a set speed indepenent
-    // of the processor CPU speed.  We limit the movement of an enemy, for instance, to 30 movements
-    // per second.
-    var lastEnemyExecutionTime: TimeInterval = 0
-    let enemyExecutionGovernor: TimeInterval = 1 / 30  // 30 mps
-    var playerBulletExecutionTime: TimeInterval = 0
-    let playerBulletsPerSecond: Float = 4
-    var playerBulletFireRateInterval: TimeInterval
-
-    // We can use this to increase/decrease the player difficulty. The smaller the number, the faster
-    // the screen should do updates for the enemies.  We use the value from this enum to multiply
-    // against objects during game play.
-    var programDifficulty: GameDifficulty = .normal
+    // of the processor CPU speed.  We limit the movement of an enemy, for instance, to 30 mps (movements
+    // per second).
+    var lastEnemyExecutionTime: TimeInterval = 0.0
+    let enemyExecutionGovernor: TimeInterval = 1.0 / 30.0  // 30 mps
+    var playerBulletExecutionTime: TimeInterval = 0.0
+    let playerBulletsPerSecond: Float = 4.0
+    var playerBulletFireRateInterval: TimeInterval = 0.0
+    var enemyBulletExecutionTime: TimeInterval = 0.0
+    let enemyBulletsPerSecond: Float = 4.0
+    var enemyBulletFireRateInterval: TimeInterval = 0.0
+    var transitionStartExecutionTime: TimeInterval = 0.0
+    var transitionLastExecutionTime: TimeInterval = 0.0
+    let transitionExecutionRate: TimeInterval = 0.025  // Speed to transition the player back to the starting spot
+    let transitionExecutionSpeed: Int = 5 // Number of pixels to move
+    let transitionMiminumTime: TimeInterval = 5.0  // Minimum amout of time we want to wait before starting next level
+    let enemyBulletSpeed: Double = 25.0  // Bullet speed
     
     // Text labels.  Make sure you have the font loaded in the code if you add unusual fonts here.
     // Edit Undo Link BRK = edunline.ttf
@@ -91,7 +102,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     let fundsLabel = SKLabelNode(fontNamed: "Arial")
     let healthBarString: NSString = "===================="
     
-    var textFlashAction: SKAction!
     let screenBackgroundColor = SKColor.black
     
     var score = 0
@@ -104,8 +114,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var enemyScoutsStartingNumber: Int = 5
     var enemyScoutsLevelsToAddAdditional: Int = 3
     var enemyScoutsMaximumNumber: Int = 20
-    var enemyScoutsLevelGainAdditionalLives: Int = 3
-    var enemyScoutsMaximumNumberOfAdditioinalLives: Int = 5
+    var enemyScoutsLevelGainAdditionalLives: Int = 5
+    var enemyScoutsMaximumNumberOfAdditioinalLives: Int = 2
+    var enemyScoutSpawnDelay: Double = 2.0
+    var enemyScoutsSpawnMinimum: Double = 0.0
 
     //   Swarmers
     var enemySwarmersLevelFirstAppear: Int = 5
@@ -113,39 +125,60 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var enemySwarmersLevelsToAddAdditional: Int = 5
     var enemySwarmersMaximumNumber: Int = 20
     var enemySwarmersLevelGainAdditionalLives: Int = 10
-    var enemySwarmersMaximumNumberOfAdditioinalLives: Int = 3
+    var enemySwarmersMaximumNumberOfAdditioinalLives: Int = 1
+    var enemySwarmersSpawnDelay: Double = 5.0
+    var enemySwarmersSpawnMinimum: Double = 0.5
 
     //   Fighters
-    var enemyFightersLevelFirstAppear: Int = 11
+    var enemyFightersLevelFirstAppear: Int = 10
     var enemyFightersStartingNumber: Int = 2
     var enemyFightersLevelsToAddAdditional: Int = 5
     var enemyFightersMaximumNumber: Int = 10
-    var enemyFightersLevelGainAdditionalLives: Int = 21
-    var enemyFightersMaximumNumberOfAdditioinalLives: Int = 5
-
-    //   Boss Bombers
-    var enemyBossBombersLevelFirstAppear: Int = 20
-    var enemyBossBombersStartingNumber: Int = 1
-    var enemyBossBomberLevelInterval: Int = 10 // Show bosses every 10 levels from first appearing
-    var enemyBossBombersLevelsToAddAdditional: Int = 10
-    var enemyBossBombersMaximumNumber: Int = 5
-    var enemyBossBombersLevelGainAdditionalLives: Int = 50
-    var enemyBossBombersMaximumNumberOfAdditioinalLives: Int = 1
+    var enemyFightersLevelGainAdditionalLives: Int = 20
+    var enemyFightersMaximumNumberOfAdditioinalLives: Int = 2
+    var enemyFightersSpawnDelay: Double = 3.0
+    var enemyFightersSpawnMinimum: Double = 2.0
 
     //   Boss Fighter
-    var enemyBossFightersLevelFirstAppear: Int = 50
+    var enemyBossFightersLevelFirstAppear: Int = 20
     var enemyBossFightersStartingNumber: Int = 1
-    var enemyBossFightersLevelInterval: Int = 25 // Show bosses every 25 levels from first appearing
-    var enemyBossFightersLevelsToAddAdditional: Int = 25
-    var enemyBossFightersMaximumNumber: Int = 2
-    var enemyBossFightersLevelGainAdditionalLives: Int = 25
-    var enemyBossFightersMaximumNumberOfAdditioinalLives: Int = 0
+    var enemyBossFightersLevelInterval: Int = 10
+    var enemyBossFightersLevelsToAddAdditional: Int = 10
+    var enemyBossFightersMaximumNumber: Int = 5
+    var enemyBossFightersLevelGainAdditionalLives: Int = 20
+    var enemyBossFightersMaximumNumberOfAdditioinalLives: Int = 1
+    var enemyBossFightersSpawnDelay: Double = 5.0
+    var enemyBossFightersSpawnMinimum: Double = 5.0
+    
+    //   Boss Bombers
+    var enemyBossBombersLevelFirstAppear: Int = 50
+    var enemyBossBombersStartingNumber: Int = 1
+    var enemyBossBomberLevelInterval: Int = 10
+    var enemyBossBombersLevelsToAddAdditional: Int = 20
+    var enemyBossBombersMaximumNumber: Int = 3
+    var enemyBossBombersLevelGainAdditionalLives: Int = 20
+    var enemyBossBombersMaximumNumberOfAdditioinalLives: Int = 1
+    var enemyBossBombersSpawnDelay: Double = 5.0
+    var enemyBossBombersSpawnMinimum: Double = 4.0
+    
+    var laserSound: SKAction = SKAction.sequence([SKAction.playSoundFileNamed("laser.wav", waitForCompletion: false), SKAction.removeFromParent()])
+    var pewSound: SKAction = SKAction.sequence([SKAction.playSoundFileNamed(fileName: "pew.wav", atVolume: 1.0, waitForCompletion: false)])
+    var explodeSound:  SKAction = SKAction.sequence([SKAction.playSoundFileNamed(fileName: "explode.wav",  atVolume: 0.8, waitForCompletion: false), SKAction.removeFromParent()])
+    var levelCompleteSound:  SKAction = SKAction.sequence([SKAction.playSoundFileNamed(fileName: "levelcomplete.mp3", atVolume: 1.0, waitForCompletion: false), SKAction.removeFromParent()])
+    var gameOverSound:  SKAction = SKAction.sequence([SKAction.playSoundFileNamed(fileName: "gameover.mp3", atVolume: 1.0, waitForCompletion: false), SKAction.removeFromParent()])
+    var electricSound:  SKAction = SKAction.sequence([SKAction.playSoundFileNamed(fileName: "electriccurrent.wav", atVolume: 1.0, waitForCompletion: false)])
     
     // Pulse action
     let screenPulseAction = SKAction.repeatForever(SKAction.sequence([SKAction.fadeOut(withDuration: 1), SKAction.fadeIn(withDuration: 1)]))
-    let laserSound = SKAction.playSoundFileNamed("laser.wav", waitForCompletion: false)
-    let explodeSound = SKAction.playSoundFileNamed("explode.wav", waitForCompletion: false)
+    // Rotate it (spin it really fast)
+    let rotateNode = SKAction.repeatForever(SKAction.rotate(byAngle: CGFloat(Double.pi/1), duration: 0.1))
+    // Pulse it
+    let pulseNode = SKAction.repeatForever(SKAction.sequence([SKAction.fadeOut(withDuration: 0.1), SKAction.fadeIn(withDuration: 0.1)]))
+    // Pulse colors
+    let colorPulseBlue = SKAction.repeatForever(SKAction.sequence([SKAction.colorize(with: SKColor.blue, colorBlendFactor: 1, duration: 0.1), SKAction.colorize(with: SKColor.white, colorBlendFactor: 1, duration: 0.1)]))
+    let colorPulseRed = SKAction.repeatForever(SKAction.sequence([SKAction.colorize(with: SKColor.red, colorBlendFactor: 1, duration: 0.1), SKAction.colorize(with: SKColor.white, colorBlendFactor: 1, duration: 0.1)]))
     
+    // Player ship
     var playerShip: PlayerShip!
     var playerShipCenterCannon: PlayerCenterLaserCannonState = .railGun
     var playerShipWingCannons: PlayerWingLaserCannonState = .none
@@ -156,12 +189,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // Initilization method
     override init(size: CGSize) {
+        super.init(size: size)
+        
         // Calculate playable margin.  Put a boarder of 20 pixels on each side
         playableRect = CGRect(x: 20, y: 20, width: size.width-40, height: size.height - hudHeight-40)
         playerBulletFireRateInterval = TimeInterval(1.0 / playerBulletsPerSecond)
-        
-        super.init(size: size)
-        
+        enemyBulletFireRateInterval = TimeInterval(1.0 / enemyBulletsPerSecond)
+
         // Setup the initial game state
         gameState = .gameOver
         // Setup the starting screen
@@ -169,7 +203,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         setUpUI()
         setupEntities()
         
-        SKTAudio.sharedInstance().playBackgroundMusic("bgMusic.mp3", musicVolume)
+        SKTAudio.sharedInstance().playBackgroundMusic("bgmusic.mp3", 0.0)
     }
 
     required init(coder aDecoder: NSCoder) {
@@ -185,14 +219,23 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // TouchBegan
     // Notes:  This method is called when the user touches the screen
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if gameState == .gameOver {
+        switch (gameState) {
+        case .gameOver:
             startGame()
-        }
-        if gameState == .waveComplete {
+            break
+        case .gameRunning:
+            break
+        case .splashScreen:
+            startGame()
+            break
+        case .readyToStartWave:
             startNextWave()
-        }
-        if gameState == .splashScreen {
-            startGame()
+            break
+        case .waveComplete:
+            break
+        case .transitioning:
+            transitionPlayer()
+            break
         }
     }
     
@@ -211,19 +254,20 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         deltaPoint = CGPoint.zero
     }
     
-
-    
     //
     // The update method is used to control the game play and scenes.  A governor is used to control
     // the pace of the game during game play with the exception of the player movement.  Players are
     // allowed to move as quick as they can so that we try and minimize the finger moving quicker than
     // the player sprite.
-    override func update(_ currentTime: TimeInterval) {
+    override func update(_ delta: TimeInterval) {
+        let currentTime = Date().timeIntervalSince1970
+        
         // Get the new player ship location
         var newPoint:CGPoint = playerShip.position + deltaPoint
         
         var executeEnemyMovement: Bool = true
-        var playerBulletExeuctionTimeElapsed: Bool = true
+        var playerBulletExecutionTimeElapsed: Bool = true
+        var enemyBulletExecutionTimeElapsed: Bool = true
         
         // Initiate the last execution time
         if (lastEnemyExecutionTime == 0) {
@@ -233,11 +277,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         if (playerBulletExecutionTime == 0) {
             playerBulletExecutionTime = currentTime
         }
+        // Initiate the last player bullet execution time
+        if (enemyBulletExecutionTime == 0) {
+            enemyBulletExecutionTime = currentTime
+        }
         // Get the delta from the last time we executed until now
         let enemyExecutionTimeDelta = currentTime - lastEnemyExecutionTime
         // Get the delta from the last time we executed until now
         let playerBulletExecutionTimeDelta = currentTime - playerBulletExecutionTime
-
+        // Get the delta from the last time we executed until now
+        let enemyBulletExecutionTimeDelta = currentTime - enemyBulletExecutionTime
+        
         // Check to see if we've waited long enough to do our processing.  We multiple this
         // raw value by the difficulty setting value to increase the time or decease it
         if (enemyExecutionTimeDelta < (enemyExecutionGovernor * programDifficulty.rawValue)) {
@@ -254,11 +304,22 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         if (playerBulletExecutionTimeDelta < (playerBulletFireRateInterval)) {
             //
             //  Nope, don't move the enemies yet
-            playerBulletExeuctionTimeElapsed = false
+            playerBulletExecutionTimeElapsed = false
         } else {
             //
             // Yes we've waited long enough, store the new execution time
             playerBulletExecutionTime = currentTime
+        }
+        // Check to see if we've waited long enough to do our processing.  We multiple this
+        // raw value by the difficulty setting value to increase the time or decease it
+        if (enemyBulletExecutionTimeDelta < (enemyBulletFireRateInterval)) {
+            //
+            //  Nope, don't move the enemies yet
+            enemyBulletExecutionTimeElapsed = false
+        } else {
+            //
+            // Yes we've waited long enough, store the new execution time
+            enemyBulletExecutionTime = currentTime
         }
         
         //
@@ -266,6 +327,20 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         switch gameState {
         case (.splashScreen):
+            break
+        case .readyToStartWave:
+            // If we don't have a levelLabel, then we just changed to this games status
+            if (levelLabel.parent == nil) {
+                levelLabel.text = "WAVE \(wave+1)"
+                if ((wave+1)%5 == 0) {
+                    levelLabel.text = "WAVE \(wave+1): BONUS WAVE"
+                }
+                levelLabel.removeAllActions()
+                hudLayerNode.addChild(tapScreenLabel)
+                hudLayerNode.addChild(levelLabel)
+                tapScreenLabel.run(screenPulseAction)
+                levelLabel.run(screenPulseAction)
+            }
             break
         case (.gameRunning):
             // Move the player's ship
@@ -277,8 +352,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
             //
             // If the player bullet execution time has elapsed, then fire the bullets
-            if (playerBulletExeuctionTimeElapsed) {
+            if (playerBulletExecutionTimeElapsed) {
                 firePlayerBullets()  // Fire a new set of player bullets
+                playerBulletExecutionTime = 0
             }
 
             //
@@ -298,9 +374,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                     gameState = .waveComplete
                 }
                 // Yes we've waited long enough, store the new execution time
-                lastEnemyExecutionTime = currentTime
+                lastEnemyExecutionTime = 0
             }
-            
+            //
+            // If the enemy bullet execution time has elapsed, then fire the bullets
+            if (enemyBulletExecutionTimeElapsed) {
+                fireEnemyBullets()  // Fire a new set of player bullets
+                enemyBulletExecutionTime = 0
+            }
+
             // Update the players health label to be the right length based on the players health and also
             // update the color so that the closer to 0 it gets the more red it becomes
             playerHealthLabel.fontColor = SKColor(red: CGFloat(2.0 * (1 - playerShip.health / 100)),
@@ -316,33 +398,37 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             // If the player health reaches 0 then change the game state.
             if playerShip.health <= 0 {
                 gameState = .gameOver
+                playGameOver() // Play the game over music
             }
             break
         case (.waveComplete):
-            // Reset the players position
-            playerShip.position = CGPoint(x: size.width / 2, y: 100)
-
             // Clear out the last execution times
             lastEnemyExecutionTime = 0
             playerBulletExecutionTime = 0
+            transitionLastExecutionTime = currentTime
+            transitionStartExecutionTime = currentTime
+            // Clear out the nodes
+            playerBulletLayerNode.removeAllChildren()
+            enemyLayerNode.removeAllChildren()
+            enemyBulletLayerNode.removeAllChildren()
+            levelLabel.removeFromParent()
+            tapScreenLabel.removeFromParent()
             
-            // If we don't have a levelLabel, then we just changed to this games status
-            if (levelLabel.parent == nil) {
-                playerBulletLayerNode.removeAllChildren()
-                enemyLayerNode.removeAllChildren()
-                enemyBulletLayerNode.removeAllChildren()
-                levelLabel.removeFromParent()
-                tapScreenLabel.removeFromParent()
-                
-                levelLabel.text = "WAVE \(wave+1)"
-                if ((wave+1)%5 == 0) {
-                    levelLabel.text = "WAVE \(wave+1): BONUS WAVE"
-                }
-                levelLabel.removeAllActions()
-                hudLayerNode.addChild(tapScreenLabel)
-                hudLayerNode.addChild(levelLabel)
-                tapScreenLabel.run(screenPulseAction)
-                levelLabel.run(screenPulseAction)
+            printNodes()
+            
+            // Set the state to transitioning
+            gameState = .transitioning
+            playLevelComplete()
+            break
+        case .transitioning:
+            // Get the delta from the last time we executed until now
+            let transitionExeuctionTimeDelta = currentTime - transitionLastExecutionTime
+            
+            // If we've waited long enough, call transition player to move him closer to his starting spot
+            if (transitionExeuctionTimeDelta >= (transitionExecutionRate)) {
+                // Store the current time as our current transition execution time
+                transitionLastExecutionTime = currentTime
+                transitionPlayer()
             }
             break
         case (.gameOver):
@@ -367,27 +453,36 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // This method is called by the physics engine when two physics body collide
     func didBegin(_ contact: SKPhysicsContact) {
-        // Get the enemy node
-        let enemyNode = contact.bodyA.node
-        let playerNode = contact.bodyB.node
-        // Enemy ship was hit
-        let enemy = enemyNode as! Entity
-        let player = playerNode as! Entity
-
-        // If an enemy ship was hit, apply damage to it
-        if enemyNode?.name == "enemy" {
-            // Damage the enemy ship
-            enemy.collidedWith(contact.bodyA, contact: contact, damage: player.collisionDamage)
-        }
-        // If a player node (ship or bullet) was hit, apply damage to it
-        if playerNode?.name == "playerShip" || playerNode?.name == "playerBullet" {
-            player.collidedWith(contact.bodyA, contact: contact, damage: enemy.collisionDamage)
-            // If this was the player ship, flash the screen when we take damage
-            if (playerNode?.name == "playerShip") {
-                flashScreenBasedOnDamage(SKColor.red, enemy.collisionDamage) // Flash the screen
+        // Get the nodes that triggered the collision
+        let nodeA = contact.bodyA.node
+        let nodeB = contact.bodyB.node
+        // Get the entity (identity) of the nodes
+        let nodeAEntity = nodeA as! Entity
+        let nodeBEntity = nodeB as! Entity
+        //
+        // In a collision, two nodes hit so let's apply damage to both nodes.
+        if (nodeA?.name == Entity.EntityClassName.EnemyShip.rawValue ||
+            nodeA?.name == Entity.EntityClassName.PlayerShip.rawValue ||
+            nodeA?.name == Entity.EntityClassName.PlayerBullet.rawValue ||
+            nodeA?.name == Entity.EntityClassName.EnemyBullet.rawValue) {
+            // Run the collision method
+            nodeAEntity.collidedWith(contact.bodyA, contact: contact, damage: nodeBEntity.collisionDamage)
+            // If the player ship was hit, then trigger the screen flash
+            if (nodeA?.name == Entity.EntityClassName.PlayerShip.rawValue) {
+               flashScreenBasedOnDamage(SKColor.red, nodeBEntity.collisionDamage) // Flash the screen
             }
         }
-        
+        if (nodeB?.name == Entity.EntityClassName.EnemyShip.rawValue ||
+            nodeB?.name == Entity.EntityClassName.PlayerShip.rawValue ||
+            nodeB?.name == Entity.EntityClassName.PlayerBullet.rawValue ||
+            nodeB?.name == Entity.EntityClassName.EnemyBullet.rawValue) {
+            // Run the collision method
+            nodeBEntity.collidedWith(contact.bodyB, contact: contact, damage: nodeAEntity.collisionDamage)
+            if (nodeB?.name == Entity.EntityClassName.PlayerShip.rawValue) {
+                // If the player ship was hit, then trigger the screen flash
+                flashScreenBasedOnDamage(SKColor.red, nodeAEntity.collisionDamage) // Flash the screen
+            }
+        }
     }
 
     //
@@ -407,7 +502,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // Flash the screen red
         self.run(SKAction.sequence([
             SKAction.colorize(with: color, colorBlendFactor: 1.0, duration: duration),
-            SKAction.colorize(with: screenBackgroundColor, colorBlendFactor: 1.0, duration: duration)]))
+            SKAction.colorize(with: screenBackgroundColor, colorBlendFactor: 1.0, duration: duration), SKAction.removeFromParent()]))
     }
     
     // Setup the initial screen node layers
@@ -422,7 +517,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         starfieldLayerNode.zPosition = 10
         //
         // Fade to background color
-        self.run(SKAction.sequence([SKAction.colorize(with: screenBackgroundColor, colorBlendFactor: 1.0, duration: 0)]))
+        self.run(SKAction.sequence([SKAction.colorize(with: screenBackgroundColor, colorBlendFactor: 1.0, duration: 0), SKAction.removeFromParent()]))
         
         // Lets build the background node (starfield)
         let starfieldNode = SKNode()
@@ -457,9 +552,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         hudBarBackground.position = CGPoint(x:0, y: size.height - hudHeight)
         hudBarBackground.anchorPoint = CGPoint.zero
         hudLayerNode.addChild(hudBarBackground)
-        
-        // Action to flash the text (used in the score)
-        textFlashAction = SKAction.sequence([SKAction.scale(to: 1.5, duration: 0.1), SKAction.scale(to: 1.0, duration: 0.1)])
 
         //
         // Score:
@@ -472,8 +564,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         scoreLabel.position = CGPoint(x: 30, y: size.height - scoreLabel.frame.size.height + 3)
         //    Add the score lable to the hud layer node
         hudLayerNode.addChild(scoreLabel)
-        //    Add the flash action to the score lable
-        // scoreLabel.run(SKAction.repeat(textFlashAction, count: 20))
 
         //
         // Wave:
@@ -588,8 +678,45 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         tapScreenLabel.removeAllActions()
         tapScreenLabel.removeFromParent()
         levelLabel.removeFromParent()
+        
+        SKTAudio.sharedInstance().setBackgroundMusicVolume(Float(musicVolume)) // Set the background music volume
     }
-
+    
+    //
+    // Slowly move the player to the starting location
+    func transitionPlayer() {
+        // Get the current player position
+        var deltas: CGPoint = playerShip.position
+        // Figure out the deltas to the starting position
+        deltas.x = CGFloat(Int(deltas.x - CGFloat(Int((size.width / 2)))))
+        deltas.y = CGFloat(Int(deltas.y - 100))
+        //
+        // First, lets move the x position to the starting coordinates
+        if (deltas.x != 0) {
+            let xmovementDirection: Int = Int(deltas.x / abs(deltas.x))
+            var xmovement = abs(deltas.x)
+            // If we are more than the speed, then we move just the speed
+            if (xmovement > CGFloat(transitionExecutionSpeed)) {
+                xmovement = CGFloat(transitionExecutionSpeed)
+            }
+            playerShip.position = CGPoint(x: CGFloat(Int(playerShip.position.x) - Int(xmovement) * xmovementDirection), y: playerShip.position.y)
+        } else if (deltas.y != 0) {
+            let ymovementDirection: Int = Int(deltas.y / abs(deltas.y))
+            var ymovement = abs(deltas.y)
+            // If we are more than the speed, then we move just the speed
+            if (ymovement > CGFloat(transitionExecutionSpeed)) {
+                ymovement = CGFloat(transitionExecutionSpeed)
+            }
+            playerShip.position = CGPoint(x: playerShip.position.x, y: CGFloat(Int(playerShip.position.y) - Int(ymovement) * ymovementDirection))
+        } else {
+            let transitionDelta = Date().timeIntervalSince1970 - transitionStartExecutionTime
+            // If we've waited the minimum amount of time, then we can change the state
+            if (transitionDelta >= transitionMiminumTime) {
+                gameState = .readyToStartWave
+            }
+        }
+    }
+    
     //
     // Continue the game by going to the next wave and starting it
     func startNextWave() {
@@ -613,7 +740,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         tapScreenLabel.removeFromParent()
         levelLabel.removeFromParent()
         
-
+        SKTAudio.sharedInstance().setBackgroundMusicVolume(Float(musicVolume))  // Set the music volume
     }
     
     //
@@ -635,41 +762,40 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         addFighters()
         addBossBombers()
         addBossFighters()
-        
     }
 
     func upgradeWeapons() {
         // Upgrade weapons
         switch (wave) {
-        case 1:
+        case 0...1:
             playerShipCenterCannon = .railGun
             playerShipWingCannons = .none
             playerShipTailCannons = .none
-        case  6:
+        case  6...10:
             playerShipCenterCannon = .particleLaser
             playerShipWingCannons = .none
             playerShipTailCannons = .none
-        case  11:
+        case  11...15:
             playerShipCenterCannon = .particleLaser
             playerShipWingCannons = .railGun
             playerShipTailCannons = .none
-        case  16:
+        case  16...20:
             playerShipCenterCannon = .particleLaser
             playerShipWingCannons = .particleLaser
             playerShipTailCannons = .none
-        case  21:
+        case  21...25:
             playerShipCenterCannon = .particleLaser
             playerShipWingCannons = .particleLaser
             playerShipTailCannons = .railGun
-        case  26:
+        case  26...30:
             playerShipCenterCannon = .particleLaser
             playerShipWingCannons = .particleLaser
             playerShipTailCannons = .particleLaser
-        case  31:
+        case  31...35:
             playerShipCenterCannon = .protonLaser
             playerShipWingCannons = .particleLaser
             playerShipTailCannons = .particleLaser
-        case  36:
+        case  36...40:
             playerShipCenterCannon = .protonLaser
             playerShipWingCannons = .protonLaser
             playerShipTailCannons = .particleLaser
@@ -690,74 +816,102 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // Scouts enemy add method:
     func addScouts() {
-        var number: Int = (wave/enemyScoutsLevelGainAdditionalLives) + enemyScoutsStartingNumber
+        // If we aren't at the level where they first appear yet, return
+        if (wave < enemyScoutsLevelFirstAppear) {
+            return
+        }
+        // Calculate the number of enemies.  We take the current level, subtract from it the level that they first appeared,
+        // and then divide that by the number of levels we wait to add one.  We add this number to the initial number
+        // to spawn with to get our new number.  If that new number is greater than the maximum number, then use the max.
+        var number: Int = Int(enemyScoutsStartingNumber + (wave - enemyScoutsLevelFirstAppear)/enemyScoutsLevelsToAddAdditional)
         if (number > enemyScoutsMaximumNumber) {
             number = enemyScoutsMaximumNumber
         }
-        var lives = ((wave + 1)/enemyScoutsLevelGainAdditionalLives)
+        // To compute the number of lives, we take the current wave, subtract from it the level that they first appeared,
+        // and then divide that number by the level gain before additional lives.  If this number is greater than then
+        // maximum number of lives we're allowed, then use the max number.
+        var additionalLives: Int = (wave - enemyScoutsLevelFirstAppear)/enemyScoutsLevelGainAdditionalLives
         if (enemyScoutsMaximumNumberOfAdditioinalLives != 0) {
-            lives = (lives > enemyScoutsMaximumNumberOfAdditioinalLives ? enemyScoutsMaximumNumberOfAdditioinalLives : lives)
+            additionalLives = (additionalLives > enemyScoutsMaximumNumberOfAdditioinalLives ? enemyScoutsMaximumNumberOfAdditioinalLives : additionalLives)
         }
         
-        // Add mini boss enemies starting at wave 5
-        if (wave >= enemyScoutsLevelFirstAppear) {
-            for _ in 0..<number {
-                let enemy = EnemyScout(entityPosition: CGPoint(
-                    x: CGFloat.random(min: playableRect.origin.x, max: playableRect.size.width),
-                    y: playableRect.size.height+100), playableRect: playableRect)
-                let initialWaypoint = CGPoint(x: CGFloat.random(min: playableRect.origin.x, max: playableRect.width), y: CGFloat.random(min: playableRect.height / 2, max: playableRect.height))
-                enemy.aiSteering.updateWaypoint(initialWaypoint)
-                enemy.health = 5
-                enemy.maxHealth = 5
-                enemy.speed = CGFloat(1.0 / programDifficulty.rawValue)
-                if (wave >= enemyScoutsLevelGainAdditionalLives) {
-                    enemy.lives = lives
-                }
-                enemyLayerNode.addChild(enemy)
+        // Add enemies
+        for _ in 0..<number {
+            let enemy = EnemyScout(entityPosition: CGPoint(
+                x: CGFloat.random(min: playableRect.origin.x, max: playableRect.size.width),
+                y: playableRect.size.height+100), playableRect: playableRect)
+            let initialWaypoint = CGPoint(x: CGFloat.random(min: playableRect.origin.x, max: playableRect.width), y: CGFloat.random(min: playableRect.height / 2, max: playableRect.height))
+            enemy.aiSteering.updateWaypoint(initialWaypoint)
+            enemy.health = 5
+            enemy.maxHealth = 5
+            enemy.speed = CGFloat(1.0 / programDifficulty.rawValue)
+            if (wave - enemyScoutsLevelFirstAppear >= enemyScoutsLevelGainAdditionalLives) {
+                enemy.lives = 1 + additionalLives
             }
+            enemy.setSpawnDelay(Double(CGFloat.random())*enemyScoutSpawnDelay + enemyScoutsSpawnMinimum)
+            enemyLayerNode.addChild(enemy)
         }
-
     }
     
     // Swarmers enemy add method:
     func addSwarmers() {
-        var number: Int = (wave/enemySwarmersLevelGainAdditionalLives) + enemySwarmersStartingNumber
+        // If we aren't at the level where they first appear yet, return
+        if (wave < enemySwarmersLevelFirstAppear) {
+            return
+        }
+        // Calculate the number of enemies.  We take the current level, subtract from it the level that they first appeared,
+        // and then divide that by the number of levels we wait to add one.  We add this number to the initial number
+        // to spawn with to get our new number.  If that new number is greater than the maximum number, then use the max.
+        var number: Int = enemySwarmersStartingNumber + (wave - enemySwarmersLevelFirstAppear)/enemySwarmersLevelsToAddAdditional
         if (number > enemySwarmersMaximumNumber) {
             number = enemySwarmersMaximumNumber
         }
-        var lives = (wave/enemySwarmersLevelGainAdditionalLives)
+        // To compute the number of lives, we take the current wave, subtract from it the level that they first appeared,
+        // and then divide that number by the level gain before additional lives.  If this number is greater than then
+        // maximum number of lives we're allowed, then use the max number.
+        var additionalLives: Int = (wave - enemySwarmersLevelFirstAppear)/enemySwarmersLevelGainAdditionalLives
         if (enemySwarmersMaximumNumberOfAdditioinalLives != 0) {
-            lives = (lives > enemySwarmersMaximumNumberOfAdditioinalLives ? enemySwarmersMaximumNumberOfAdditioinalLives : lives)
+            additionalLives = (additionalLives > enemySwarmersMaximumNumberOfAdditioinalLives ? enemySwarmersMaximumNumberOfAdditioinalLives : additionalLives)
         }
         
-        // Add mini enemies starting at wave 5
-        if (wave >= enemySwarmersLevelFirstAppear) {
-            for _ in 0..<number {
-                let enemy = EnemySwarmer(entityPosition: CGPoint(
-                    x: CGFloat.random(min: playableRect.origin.x, max: playableRect.size.width),
-                    y: playableRect.size.height+100), playableRect: playableRect)
-                let initialWaypoint = CGPoint(x: CGFloat.random(min: playableRect.origin.x, max: playableRect.width), y: CGFloat.random(min: playableRect.height / 2, max: playableRect.height))
-                enemy.aiSteering.updateWaypoint(initialWaypoint)
-                enemy.health = 5
-                enemy.maxHealth = 5
-                enemy.speed = CGFloat(1.0 / programDifficulty.rawValue)
-                if (wave >= enemySwarmersLevelGainAdditionalLives) {
-                    enemy.lives = lives
-                }
-                enemyLayerNode.addChild(enemy)
+        // Add enemies
+        for _ in 0..<number {
+            let enemy = EnemySwarmer(entityPosition: CGPoint(
+                x: CGFloat.random(min: playableRect.origin.x, max: playableRect.size.width),
+                y: playableRect.size.height+100), playableRect: playableRect)
+            let initialWaypoint = CGPoint(x: CGFloat.random(min: playableRect.origin.x, max: playableRect.width), y: CGFloat.random(min: playableRect.height / 2, max: playableRect.height))
+            enemy.aiSteering.updateWaypoint(initialWaypoint)
+            enemy.health = 5
+            enemy.maxHealth = 5
+            enemy.speed = CGFloat(1.0 / programDifficulty.rawValue)
+            if (wave - enemySwarmersLevelFirstAppear >= enemySwarmersLevelGainAdditionalLives) {
+                enemy.lives = 1 + additionalLives
             }
+            enemy.setSpawnDelay(Double(CGFloat.random())*enemySwarmersSpawnDelay + enemySwarmersSpawnMinimum)
+            enemyLayerNode.addChild(enemy)
         }
+
     }
     
     // Fighter enemy add method:
     func addFighters() {
-        var number: Int = (wave/enemyFightersLevelGainAdditionalLives) + enemyFightersStartingNumber
+        // If we aren't at the level where they first appear yet, return
+        if (wave < enemyFightersLevelFirstAppear) {
+            return
+        }
+        // Calculate the number of enemies.  We take the current level, subtract from it the level that they first appeared,
+        // and then divide that by the number of levels we wait to add one.  We add this number to the initial number
+        // to spawn with to get our new number.  If that new number is greater than the maximum number, then use the max.
+        var number: Int = enemyFightersStartingNumber + (wave - enemyFightersLevelFirstAppear)/enemyFightersLevelsToAddAdditional
         if (number > enemyFightersMaximumNumber) {
             number = enemyFightersMaximumNumber
         }
-        var lives = (wave/enemyFightersLevelGainAdditionalLives)
+        // To compute the number of lives, we take the current wave, subtract from it the level that they first appeared,
+        // and then divide that number by the level gain before additional lives.  If this number is greater than then
+        // maximum number of lives we're allowed, then use the max number.
+        var additionalLives: Int = (wave - enemyFightersLevelFirstAppear)/enemyFightersLevelGainAdditionalLives
         if (enemyFightersMaximumNumberOfAdditioinalLives != 0) {
-            lives = (lives > enemyFightersMaximumNumberOfAdditioinalLives ? enemyFightersMaximumNumberOfAdditioinalLives : lives)
+            additionalLives = (additionalLives > enemyFightersMaximumNumberOfAdditioinalLives ? enemyFightersMaximumNumberOfAdditioinalLives : additionalLives)
         }
         
         // Add mini enemies starting at wave 5
@@ -771,9 +925,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 enemy.health = 5
                 enemy.maxHealth = 5
                 enemy.speed = CGFloat(1.0 / programDifficulty.rawValue)
-                if (wave >= enemyFightersLevelGainAdditionalLives) {
-                    enemy.lives = lives
+                enemy.railGunFireInterval *= programDifficulty.rawValue
+                if (wave - enemyFightersLevelFirstAppear >= enemyFightersLevelGainAdditionalLives) {
+                    enemy.lives = 1 + additionalLives
                 }
+                enemy.setSpawnDelay(Double(CGFloat.random())*enemyFightersSpawnDelay + enemyFightersSpawnMinimum)
                 enemyLayerNode.addChild(enemy)
             }
         }
@@ -781,73 +937,80 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // Boss Bombers add method:
     func addBossBombers() {
-        // If we are on at least the starting level for this boss and the level is
-        // evenly divisible by the frequency, then we'll need to generate bosses
-        if (wave < enemyBossBombersLevelFirstAppear || (wave - enemyBossBombersLevelFirstAppear) % enemyBossBomberLevelInterval != 0) {
+        // If we aren't at the level where they first appear yet, return
+        if (wave < enemyBossBombersLevelFirstAppear) {
             return
         }
-        
-        var number: Int = ((wave + 1 - enemyBossBombersLevelFirstAppear)/enemyBossBombersLevelsToAddAdditional) + 1
+        // Calculate the number of enemies.  We take the current level, subtract from it the level that they first appeared,
+        // and then divide that by the number of levels we wait to add one.  We add this number to the initial number
+        // to spawn with to get our new number.  If that new number is greater than the maximum number, then use the max.
+        var number: Int = enemyBossBombersStartingNumber + (wave - enemyBossBombersLevelFirstAppear)/enemyBossBombersLevelsToAddAdditional
         if (number > enemyBossBombersMaximumNumber) {
             number = enemyBossBombersMaximumNumber
         }
-        
-        var lives = (wave/enemyBossBombersLevelGainAdditionalLives)
+        // To compute the number of lives, we take the current wave, subtract from it the level that they first appeared,
+        // and then divide that number by the level gain before additional lives.  If this number is greater than then
+        // maximum number of lives we're allowed, then use the max number.
+        var additionalLives: Int = (wave - enemyBossBombersLevelFirstAppear)/enemyBossBombersLevelGainAdditionalLives
         if (enemyBossBombersMaximumNumberOfAdditioinalLives != 0) {
-            lives = (lives > enemyBossBombersMaximumNumberOfAdditioinalLives ? enemyBossBombersMaximumNumberOfAdditioinalLives : lives)
+            additionalLives = (additionalLives > enemyBossBombersMaximumNumberOfAdditioinalLives ? enemyBossBombersMaximumNumberOfAdditioinalLives : additionalLives)
         }
         
-        // Add boss enemies
-        for _ in 0..<number {
-            let enemy = EnemyBossBomber(entityPosition: CGPoint(x: CGFloat.random(min: playableRect.origin.x, max:
-                    playableRect.size.width), y: playableRect.size.height+100), playableRect: playableRect)
-            let initialWaypoint = CGPoint(x: CGFloat.random(min: playableRect.origin.x, max: playableRect.width), y: CGFloat.random(min: playableRect.height / 2,   max: playableRect.height))
-            enemy.aiSteering.updateWaypoint(initialWaypoint)
-            enemy.health = Double((wave)/enemyBossBomberLevelInterval) * 25.0
-            enemy.maxHealth = Double((wave)/enemyBossBomberLevelInterval) * 25.0
-            // Enable the additional lives if we have reached the right level
-            if (wave >= enemyBossBombersLevelGainAdditionalLives) {
-                enemy.lives = lives
-            }
-            enemy.speed = CGFloat(0.25 / programDifficulty.rawValue)
-            enemyLayerNode.addChild(enemy)
+        // Add enemies
+        let enemy = EnemyBossBomber(entityPosition: CGPoint(x: CGFloat.random(min: playableRect.origin.x, max:
+            playableRect.size.width), y: playableRect.size.height+100), playableRect: playableRect)
+        let initialWaypoint = CGPoint(x: CGFloat.random(min: playableRect.origin.x, max: playableRect.width), y: CGFloat.random(min: playableRect.height / 2,   max: playableRect.height))
+        enemy.aiSteering.updateWaypoint(initialWaypoint)
+        enemy.health = Double((wave)/enemyBossBomberLevelInterval) * 25.0
+        enemy.maxHealth = Double((wave)/enemyBossBomberLevelInterval) * 25.0
+        enemy.staticGunFireInterval *= programDifficulty.rawValue
+        // Enable the additional lives if we have reached the right level
+        if (wave - enemyBossBombersLevelFirstAppear >= enemyBossBombersLevelGainAdditionalLives) {
+            enemy.lives = 1 + additionalLives
         }
+        enemy.speed = CGFloat(0.25 / programDifficulty.rawValue)
+        enemy.setSpawnDelay(Double(CGFloat.random())*enemyBossBombersSpawnDelay + enemyBossBombersSpawnMinimum)
+        enemyLayerNode.addChild(enemy)
     }
     
     // Boss Fighters add method:
     func addBossFighters() {
-        // If we are on at least the starting level for this boss and the level is
-        // evenly divisible by the frequency, then we'll need to generate bosses
-        if (wave < enemyBossFightersLevelFirstAppear || (wave - enemyBossFightersLevelFirstAppear) % enemyBossFightersLevelInterval != 0) {
+        // If we aren't at the level where they first appear yet, return
+        if (wave < enemyBossFightersLevelFirstAppear) {
             return
         }
-        
-        var number: Int = ((wave - enemyBossFightersLevelFirstAppear)/enemyBossFightersLevelsToAddAdditional) + 1
+        // Calculate the number of enemies.  We take the current level, subtract from it the level that they first appeared,
+        // and then divide that by the number of levels we wait to add one.  We add this number to the initial number
+        // to spawn with to get our new number.  If that new number is greater than the maximum number, then use the max.
+        var number: Int = enemyBossFightersStartingNumber + (wave - enemyBossFightersLevelFirstAppear)/enemyBossFightersLevelsToAddAdditional
         if (number > enemyBossFightersMaximumNumber) {
             number = enemyBossFightersMaximumNumber
         }
-        
-        var lives = (wave/enemyBossFightersLevelGainAdditionalLives)
+        // To compute the number of lives, we take the current wave, subtract from it the level that they first appeared,
+        // and then divide that number by the level gain before additional lives.  If this number is greater than then
+        // maximum number of lives we're allowed, then use the max number.
+        var additionalLives: Int = (wave - enemyBossFightersLevelFirstAppear)/enemyBossFightersLevelGainAdditionalLives
         if (enemyBossFightersMaximumNumberOfAdditioinalLives != 0) {
-            lives = (lives > enemyBossFightersMaximumNumberOfAdditioinalLives ? enemyBossFightersMaximumNumberOfAdditioinalLives : lives)
+            additionalLives = (additionalLives > enemyBossFightersMaximumNumberOfAdditioinalLives ? enemyBossFightersMaximumNumberOfAdditioinalLives : additionalLives)
         }
         
         // Add boss enemies
-        for _ in 0..<number {
-            let enemy = EnemyBossFighter(entityPosition: CGPoint(x: CGFloat.random(min: playableRect.origin.x, max:
-                playableRect.size.width), y: playableRect.size.height+100), playableRect: playableRect)
-            let initialWaypoint = CGPoint(x: CGFloat.random(min: playableRect.origin.x, max: playableRect.width), y: CGFloat.random(min: playableRect.height / 2,   max: playableRect.height))
-            enemy.aiSteering.updateWaypoint(initialWaypoint)
-            enemy.health = Double((wave)/enemyBossFightersLevelInterval) * 25.0
-            enemy.maxHealth = Double((wave)/enemyBossFightersLevelInterval) * 25.0
-            // Enable the additional lives if we have reached the right level
-            if (wave >= enemyBossFightersLevelGainAdditionalLives) {
-                enemy.lives = lives
-            }
-            enemy.speed = CGFloat(0.25 / programDifficulty.rawValue)
-            enemyLayerNode.addChild(enemy)
+        let enemy = EnemyBossFighter(entityPosition: CGPoint(x: CGFloat.random(min: playableRect.origin.x, max:
+            playableRect.size.width), y: playableRect.size.height+100), playableRect: playableRect)
+        let initialWaypoint = CGPoint(x: CGFloat.random(min: playableRect.origin.x, max: playableRect.width), y: CGFloat.random(min: playableRect.height / 2,   max: playableRect.height))
+        enemy.aiSteering.updateWaypoint(initialWaypoint)
+        enemy.health = Double((wave)/enemyBossFightersLevelInterval) * 25.0
+        enemy.maxHealth = Double((wave)/enemyBossFightersLevelInterval) * 25.0
+        // Enable the additional lives if we have reached the right level
+        if (wave - enemyBossFightersLevelFirstAppear >= enemyBossFightersLevelGainAdditionalLives) {
+            enemy.lives = 1 + additionalLives
         }
+        enemy.speed = CGFloat(0.25 / programDifficulty.rawValue)
+        enemy.railGunFireInterval *= programDifficulty.rawValue
+        enemy.setSpawnDelay(Double(CGFloat.random())*enemyBossFightersSpawnDelay + enemyBossFightersSpawnMinimum)
+        enemyLayerNode.addChild(enemy)
     }
+    
     //
     // This method fires the bullets in the game.  Each time this is called, it adds another set of bullets
     // to the node depending on the level.  This needs to be upgraded to allow users to purchase
@@ -875,24 +1038,104 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
 
     //
+    // Fire the enemies bullets
+    func fireEnemyBullets() {
+        let currentTime = Date().timeIntervalSince1970  // Get the current time
+        // Loop through all enemy nodes and run their update method.
+        // This causes them to update their position based on their currentWaypoint and position
+        for node in enemyLayerNode.children {
+            let enemy = node as! Enemy
+            // If the enemy has a rail gun and has spawned
+            if (enemy.railGun && enemy.spawned) {
+                // If the gun has never been fired
+                if enemy.railGunTimeLastFired <= 0.0 {
+                    enemy.railGunTimeLastFired = enemy.spawnTime  // Set the last time fired to the spawn time
+                }
+                // Get the delta since the last firing
+                let enemyLastFiredDelta = currentTime - enemy.railGunTimeLastFired
+                // If we've exceeded the firing delta
+                if (enemyLastFiredDelta >= enemy.railGunFireInterval) {
+                    let bullet = EnemyBulletRailGun(entityPosition: enemy.position)
+                    enemyBulletLayerNode.addChild(bullet)
+                    let movement1 = CGVector(
+                        dx: (playerShip.position.x - enemy.position.x)*10,
+                        dy: (playerShip.position.y - enemy.position.y)*10
+                    )
+                    // Setup the bullet to move by a vector at a calculated speed
+                    let movement = SKAction.sequence([SKAction.move(by: movement1, duration: getDuration(
+                        pointA: playerShip.position, pointB: enemy.position,
+                        speed: CGFloat(enemyBulletSpeed/programDifficulty.rawValue))), SKAction.removeFromParent()])
+                    // Let's add a lot of special effects to this type of bullet
+                    // Group the actions
+                    let group = SKAction.group([movement, colorPulseRed, pewSound])
+                    // Execute the group
+                    bullet.run(group)
+                    
+                    enemy.railGunTimeLastFired = currentTime  // Reset the time to the current time
+                }
+            }
+            // If the enemy has a static gun and has spawned
+            if (enemy.staticGun && enemy.spawned) {
+                // If the gun has never been fired
+                if enemy.staticGunTimeLastFired <= 0.0 {
+                    enemy.staticGunTimeLastFired = enemy.spawnTime  // Set the last time fired to the spawn time
+                }
+                // Get the delta since the last firing
+                let enemyLastFiredDelta = currentTime - enemy.staticGunTimeLastFired
+                // If we've exceeded the firing delta
+                if (enemyLastFiredDelta >= enemy.staticGunFireInterval) {
+                    let bullet = EnemyBulletStaticGun(entityPosition: enemy.position)
+                    enemyBulletLayerNode.addChild(bullet)
+                    let movement1 = CGVector(
+                        dx: (playerShip.position.x - enemy.position.x)*10,
+                        dy: (playerShip.position.y - enemy.position.y)*10
+                    )
+                    //
+                    // Setup the bullet to move by a vector at a calculated speed
+                    let movement = SKAction.sequence([SKAction.move(by: movement1, duration: getDuration(
+                        pointA: playerShip.position, pointB: enemy.position,
+                        speed: CGFloat(enemyBulletSpeed/programDifficulty.rawValue))), SKAction.removeFromParent()])
+                    // Let's add a lot of special effects to this type of bullet
+                    // Group the actions
+                    let group = SKAction.group([movement, rotateNode, pulseNode, colorPulseBlue, electricSound])
+                    // Execute the group
+                    bullet.run(group)
+                    // Pulse the screen
+                    self.run(SKAction.sequence([
+                        SKAction.colorize(with: SKColor.darkGray, colorBlendFactor: 1.0, duration: 0.25),
+                        SKAction.colorize(with: screenBackgroundColor, colorBlendFactor: 1.0, duration: 0.25), SKAction.removeFromParent()]))
+                    enemy.staticGunTimeLastFired = currentTime  // Reset the time to the current time
+                }
+            }
+        }
+    }
+    
+    //
+    // Calculate the duration based upon a set speed applied to a given distance
+    func getDuration(pointA:CGPoint,pointB:CGPoint,speed:CGFloat)->TimeInterval {
+        let xDist = (pointB.x - pointA.x)
+        let yDist = (pointB.y - pointA.y)
+        let distance = sqrt((xDist * xDist) + (yDist * yDist));
+        let duration : TimeInterval = TimeInterval(distance/speed)
+        return duration
+    }
+    
+    //
     // Fire the center forward cannon
     func bulletCenterForward() {
         switch(playerShipCenterCannon) {
         case .railGun:
             let bullet = BulletRailGun(entityPosition: playerShip.position)
             playerBulletLayerNode.addChild(bullet)
-            bullet.run(SKAction.sequence([SKAction.moveBy(x: 1, y: size.height+20, duration: 1),
-                                          SKAction.removeFromParent()]))
+            bullet.run(SKAction.sequence([SKAction.moveBy(x: 1, y: size.height+20, duration: 1), SKAction.removeFromParent()]))
         case .particleLaser:
             let bullet = BulletParticleLaser(entityPosition: playerShip.position)
             playerBulletLayerNode.addChild(bullet)
-            bullet.run(SKAction.sequence([SKAction.moveBy(x: 1, y: size.height+20, duration: 1),
-                                          SKAction.removeFromParent()]))
+            bullet.run(SKAction.sequence([SKAction.moveBy(x: 1, y: size.height+20, duration: 1), SKAction.removeFromParent()]))
         case .protonLaser:
             let bullet = BulletProtonLaser(entityPosition: playerShip.position)
             playerBulletLayerNode.addChild(bullet)
-            bullet.run(SKAction.sequence([SKAction.moveBy(x: 1, y: size.height+20, duration: 1),
-                                          SKAction.removeFromParent()]))
+            bullet.run(SKAction.sequence([SKAction.moveBy(x: 1, y: size.height+20, duration: 1), SKAction.removeFromParent()]))
         }
     }
 
@@ -908,24 +1151,24 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             let bullet2 = BulletRailGun(entityPosition: CGPoint(x: playerShip.position.x+20, y: playerShip.position.y))
             playerBulletLayerNode.addChild(bullet1)
             playerBulletLayerNode.addChild(bullet2)
-            bullet1.run(SKAction.sequence([SKAction.moveBy(x: 1, y: size.height, duration: 1),                SKAction.removeFromParent()]))
-            bullet2.run(SKAction.sequence([SKAction.moveBy(x: 1, y: size.height, duration: 1),                SKAction.removeFromParent()]))
+            bullet1.run(SKAction.sequence([SKAction.moveBy(x: 1, y: size.height, duration: 1), SKAction.removeFromParent()]))
+            bullet2.run(SKAction.sequence([SKAction.moveBy(x: 1, y: size.height, duration: 1), SKAction.removeFromParent()]))
         case .particleLaser:
             // Double bullet
             let bullet1 = BulletParticleLaser(entityPosition: CGPoint(x: playerShip.position.x-20, y: playerShip.position.y))
             let bullet2 = BulletParticleLaser(entityPosition: CGPoint(x: playerShip.position.x+20, y: playerShip.position.y))
             playerBulletLayerNode.addChild(bullet1)
             playerBulletLayerNode.addChild(bullet2)
-            bullet1.run(SKAction.sequence([SKAction.moveBy(x: 1, y: size.height, duration: 1),                SKAction.removeFromParent()]))
-            bullet2.run(SKAction.sequence([SKAction.moveBy(x: 1, y: size.height, duration: 1),                SKAction.removeFromParent()]))
+            bullet1.run(SKAction.sequence([SKAction.moveBy(x: 1, y: size.height, duration: 1), SKAction.removeFromParent()]))
+            bullet2.run(SKAction.sequence([SKAction.moveBy(x: 1, y: size.height, duration: 1), SKAction.removeFromParent()]))
         case .protonLaser:
             // Double bullet
             let bullet1 = BulletProtonLaser(entityPosition: CGPoint(x: playerShip.position.x-20, y: playerShip.position.y))
             let bullet2 = BulletProtonLaser(entityPosition: CGPoint(x: playerShip.position.x+20, y: playerShip.position.y))
             playerBulletLayerNode.addChild(bullet1)
             playerBulletLayerNode.addChild(bullet2)
-            bullet1.run(SKAction.sequence([SKAction.moveBy(x: 1, y: size.height, duration: 1),                SKAction.removeFromParent()]))
-            bullet2.run(SKAction.sequence([SKAction.moveBy(x: 1, y: size.height, duration: 1),                SKAction.removeFromParent()]))
+            bullet1.run(SKAction.sequence([SKAction.moveBy(x: 1, y: size.height, duration: 1), SKAction.removeFromParent()]))
+            bullet2.run(SKAction.sequence([SKAction.moveBy(x: 1, y: size.height, duration: 1), SKAction.removeFromParent()]))
         }
     }
 
@@ -941,38 +1184,36 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             let bullet2 = BulletRailGun(entityPosition: CGPoint(x: playerShip.position.x+10, y: playerShip.position.y))
             playerBulletLayerNode.addChild(bullet1)
             playerBulletLayerNode.addChild(bullet2)
-            bullet1.run(SKAction.sequence([SKAction.moveBy(x: -1, y: -size.height, duration: 1),                SKAction.removeFromParent()]))
-            bullet2.run(SKAction.sequence([SKAction.moveBy(x: -1, y: -size.height, duration: 1),                SKAction.removeFromParent()]))
+            bullet1.run(SKAction.sequence([SKAction.moveBy(x: -1, y: -size.height, duration: 1), SKAction.removeFromParent()]))
+            bullet2.run(SKAction.sequence([SKAction.moveBy(x: -1, y: -size.height, duration: 1), SKAction.removeFromParent()]))
         case .particleLaser:
             // Double bullet
             let bullet1 = BulletParticleLaser(entityPosition: CGPoint(x: playerShip.position.x-10, y: playerShip.position.y))
             let bullet2 = BulletParticleLaser(entityPosition: CGPoint(x: playerShip.position.x+10, y: playerShip.position.y))
             playerBulletLayerNode.addChild(bullet1)
             playerBulletLayerNode.addChild(bullet2)
-            bullet1.run(SKAction.sequence([SKAction.moveBy(x: -1, y: -size.height, duration: 1),                SKAction.removeFromParent()]))
-            bullet2.run(SKAction.sequence([SKAction.moveBy(x: -1, y: -size.height, duration: 1),                SKAction.removeFromParent()]))
+            bullet1.run(SKAction.sequence([SKAction.moveBy(x: -1, y: -size.height, duration: 1), SKAction.removeFromParent()]))
+            bullet2.run(SKAction.sequence([SKAction.moveBy(x: -1, y: -size.height, duration: 1), SKAction.removeFromParent()]))
         case .protonLaser:
             // Double bullet
             let bullet1 = BulletProtonLaser2(entityPosition: CGPoint(x: playerShip.position.x-10, y: playerShip.position.y))
             let bullet2 = BulletProtonLaser2(entityPosition: CGPoint(x: playerShip.position.x+10, y: playerShip.position.y))
             playerBulletLayerNode.addChild(bullet1)
             playerBulletLayerNode.addChild(bullet2)
-            bullet1.run(SKAction.sequence([SKAction.moveBy(x: -1, y: -size.height, duration: 1),                SKAction.removeFromParent()]))
-            bullet2.run(SKAction.sequence([SKAction.moveBy(x: -1, y: -size.height, duration: 1),                SKAction.removeFromParent()]))
+            bullet1.run(SKAction.sequence([SKAction.moveBy(x: -1, y: -size.height, duration: 1), SKAction.removeFromParent()]))
+            bullet2.run(SKAction.sequence([SKAction.moveBy(x: -1, y: -size.height, duration: 1), SKAction.removeFromParent()]))
         }
     }
-
+    
     //
     // Increase the score
     func increaseScoreBy(_ increment: Int) {
         score += increment
         updateScore()
-        scoreLabel.run(textFlashAction)
     }
 
     func updateScore() {
         scoreLabel.text = "Score: \(score)"
-        scoreLabel.removeAllActions()
     }
     
     //
@@ -1042,6 +1283,34 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         emitterNode.advanceSimulationTime(TimeInterval(lifetime))
         // Return the emitter node
         return emitterNode
+    }
+    
+    func printNodes() {
+        print("Start:")
+        printNodes(name: "  playerLayerNode", node: playerLayerNode)
+        printNodes(name: "  hudLayerNode", node: hudLayerNode)
+        printNodes(name: "  playerBulletLayerNode", node: playerBulletLayerNode)
+        printNodes(name: "  enemyBulletLayerNode", node: enemyBulletLayerNode)
+        printNodes(name: "  enemyLayerNode", node: enemyLayerNode)
+        printNodes(name: "  starfieldLayerNode", node: starfieldLayerNode)
+    }
+    
+    func printNodes(name: String, node: SKNode) {
+        for node in node.children {
+            let nodeName = node.name ?? "Unknown"
+            print("  \(name)->\(nodeName): ")
+            printNodes(name: "  " + nodeName, node: node)
+        }
+    }
+    
+    func playGameOver() {
+        SKTAudio.sharedInstance().setBackgroundMusicVolume(Float(0.0)) // Set the background music volume
+        run(gameOverSound)
+    }
+    
+    func playLevelComplete() {
+        SKTAudio.sharedInstance().setBackgroundMusicVolume(Float(0.0)) // Set the background music volume
+        run(levelCompleteSound)
     }
 
     func playExplodeSound() {

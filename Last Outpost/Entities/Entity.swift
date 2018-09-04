@@ -17,17 +17,28 @@ class Entity: SKSpriteNode {
         static var EnemyBullet: UInt32 = 8
     }
     
-    required init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
+    //
+    // It's imporatant that we use standarized names for the entities since we use this to determine what entity was collided
+    // with.  If the names don't match in the collision detection method, then we won't be able to register a collision
+    // with this entity.
+    enum EntityClassName: String {
+        case PlayerShip = "PlayerShip"
+        case EnemyShip = "EnemyShip"
+        case PlayerBullet = "PlayerBullet"
+        case EnemyBullet = "EnemyBullet"
     }
-    
+
     var direction = CGPoint.zero
     var health = 100.0
     var maxHealth = 100.0
-    var score = 0
-    var funds = 0
-    var lives = 1  // Number of times to respawn
-    var collisionDamage = 1
+    var score: Int = 0
+    var funds: Int = 0
+    var lives: Int = 1  // Number of times to respawn
+    var collisionDamage: Int = 1
+    
+    required init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+    }
     
     init(position: CGPoint, texture: SKTexture) {
         super.init(texture: texture, color: SKColor.white, size: texture.size())

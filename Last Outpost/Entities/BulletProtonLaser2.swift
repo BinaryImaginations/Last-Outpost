@@ -8,17 +8,17 @@
 
 import SpriteKit
 
-class BulletProtonLaser2: Entity {
-    let damage: Int = 3  // 2 points of damage
+class BulletProtonLaser2: Bullet {
     
     init(entityPosition: CGPoint) {
         let entityTexture = BulletProtonLaser2.generateTexture()!
         
         super.init(position: entityPosition, texture: entityTexture)
         
-        name = "playerBullet"
+        name = EntityClassName.PlayerBullet.rawValue
         
         collisionDamage = 3
+        damage = 3
         configureCollisionBody()
     }
     

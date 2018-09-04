@@ -20,8 +20,8 @@ class EnemyFighter: Enemy, SKPhysicsContactDelegate {
         DispatchQueue.once(token: SharedTexture.onceToken) {
             let mainShip:SKLabelNode = SKLabelNode(fontNamed: "Arial")
             mainShip.name = "mainship"
-            mainShip.fontSize = 30
-            mainShip.fontColor = SKColor.lightGray
+            mainShip.fontSize = 25
+            mainShip.fontColor = SKColor.yellow
             mainShip.text = "(x⚇x)"
             
             let textureView = SKView()
@@ -41,7 +41,7 @@ class EnemyFighter: Enemy, SKPhysicsContactDelegate {
         let entityTexture = EnemyFighter.generateTexture()!
         super.init(entityPosition: entityPosition, texture: entityTexture, playableRect: playableRect)
         
-        name = "enemy"
+        name = EntityClassName.EnemyShip.rawValue
         score = 250
         funds = 50
         collisionDamage = 5
@@ -51,9 +51,12 @@ class EnemyFighter: Enemy, SKPhysicsContactDelegate {
         configureCollisionBody()
         
         scoreLabel.name = "scoreLabel"
-        scoreLabel.fontSize = 40
+        scoreLabel.fontSize = 25
         scoreLabel.fontColor = SKColor(red: 0.5, green: 1, blue: 1, alpha: 1)
         scoreLabel.text = String(score)
+        
+        railGun = true
+        railGunFireInterval = 3.0
         
         // Set a default waypoint. The actual waypoint will be called by whoever created this instance
         aiSteering = AISteering(entity: self, waypoint: CGPoint.zero)
@@ -62,5 +65,5 @@ class EnemyFighter: Enemy, SKPhysicsContactDelegate {
         // Changing these values can generate some interesting movement effects
         aiSteering.maxVelocity = 16.0
         aiSteering.maxSteeringForce = 0.4
-    }    
+    }
 }

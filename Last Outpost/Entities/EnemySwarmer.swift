@@ -21,7 +21,7 @@ class EnemySwarmer: Enemy, SKPhysicsContactDelegate {
         DispatchQueue.once(token: SharedTexture.onceToken) {
             let mainShip:SKLabelNode = SKLabelNode(fontNamed: "Arial")
             mainShip.name = "mainship"
-            mainShip.fontSize = 24
+            mainShip.fontSize = 22
             mainShip.fontColor = SKColor.orange
             mainShip.text = "<⚉>"
             let textureView = SKView()
@@ -41,7 +41,7 @@ class EnemySwarmer: Enemy, SKPhysicsContactDelegate {
         let entityTexture = EnemySwarmer.generateTexture()!
         super.init(entityPosition: entityPosition, texture: entityTexture, playableRect: playableRect)
         
-        name = "enemy"
+        name = EntityClassName.EnemyShip.rawValue
         score = 10
         funds = 10
         lives = 1
@@ -52,7 +52,7 @@ class EnemySwarmer: Enemy, SKPhysicsContactDelegate {
         configureCollisionBody()
         
         scoreLabel.name = "scoreLabel"
-        scoreLabel.fontSize = 30
+        scoreLabel.fontSize = 25
         scoreLabel.fontColor = SKColor(red:0.5, green:1, blue:1, alpha:1)
         scoreLabel.text = String(score)
         
