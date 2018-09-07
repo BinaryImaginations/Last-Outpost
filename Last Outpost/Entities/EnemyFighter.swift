@@ -46,6 +46,7 @@ class EnemyFighter: Enemy, SKPhysicsContactDelegate {
         funds = 50
         collisionDamage = 5
         enemyClass = EnemyClass.fighter
+        entitySize = Size.Normal
         
         Enemy.loadSharedAssets()
         configureCollisionBody()

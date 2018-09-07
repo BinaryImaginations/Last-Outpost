@@ -47,6 +47,7 @@ class EnemySwarmer: Enemy, SKPhysicsContactDelegate {
         lives = 1
         collisionDamage = 3
         enemyClass = EnemyClass.mini
+        entitySize = Size.Normal
         
         Enemy.loadSharedAssets()
         configureCollisionBody()

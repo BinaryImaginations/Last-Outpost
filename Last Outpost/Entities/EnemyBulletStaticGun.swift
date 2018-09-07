@@ -17,6 +17,7 @@ class EnemyBulletStaticGun: Bullet {
         
         name = EntityClassName.EnemyBullet.rawValue
         
+        entitySize = Size.Small
         collisionDamage = 25
         damage = 25
         health = 1

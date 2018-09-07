@@ -20,6 +20,7 @@ class PlayerShip: Entity {
         
         name = EntityClassName.PlayerShip.rawValue
         
+        entitySize = Size.Normal
         collisionDamage = 5 // This is the collision damage if we run into something
         
         // Details on how the Sprite Kit physics engine works can be found in the book in
@@ -31,6 +32,7 @@ class PlayerShip: Entity {
             // Fallback on earlier versions
             self.setScale(1)
         }
+
         configureCollisionBody()
         ventingPlasma.isHidden = true
         damageEmitter.isHidden = true
@@ -64,12 +66,44 @@ class PlayerShip: Entity {
             wings.name = "wings"
             wings.fontSize = 40
             wings.text = "< >"
+            //wings.text = "≤ ≥"
             wings.fontColor = SKColor.white
             wings.position = CGPoint(x: 1, y: 7)
             // 4
+            wings.yScale = 1.0
+            wings.xScale = 0.75
             wings.zRotation = CGFloat(180).degreesToRadians()
+            wings.zPosition = mainShip.zPosition - 1
+
+            let guns = SKLabelNode(fontNamed: "PF TempestaSeven")
+            guns.name = "guns"
+            guns.fontSize = 40
+            // wings.text = "< >"
+            guns.text = "∏"
+            guns.fontColor = SKColor.blue
+            guns.position = CGPoint(x: 2, y: 18)
+            guns.yScale = 0.75
+            guns.xScale = 2.0
+            // 4
+            guns.zRotation = CGFloat(180).degreesToRadians()
+            guns.zPosition = mainShip.zPosition - 2
+
+            let decoration = SKLabelNode(fontNamed: "PF TempestaSeven")
+            decoration.alpha = 1.0
+            decoration.name = "guns"
+            decoration.fontSize = 20
+            // wings.text = "< >"
+            decoration.text = "▲"
+            decoration.fontColor = SKColor.darkGray
+            decoration.position = CGPoint(x: 1, y: 2)
+            decoration.yScale = 1.0
+            decoration.xScale = 1.0
+            // 4
+            decoration.zPosition = mainShip.zPosition + 1
 
             mainShip.addChild(wings)
+            mainShip.addChild(guns)
+            mainShip.addChild(decoration)
             // 5
             let textureView = SKView()
             
@@ -124,12 +158,10 @@ class PlayerShip: Entity {
         }
         
         ventingPlasma.isHidden = health > 30
-        if (health <= 30) {
-            print("Vent plasma! \(health):\(damage) \(ventingPlasma.isHidden)")
-        }
-        damageEmitter.setScale(CGFloat(1.5))
+
+        damageEmitter.setScale(CGFloat(1.0))
         damageEmitter.isHidden = false
-        damageEmitter.alpha = 1.0
+        damageEmitter.alpha = 0.9
         damageEmitter.run(SKAction.sequence([SKAction.fadeOut(withDuration: 1.0),SKAction.hide()]))
         damageEmitter.resetSimulation()
         
@@ -143,7 +175,7 @@ class PlayerShip: Entity {
         // Use the engine animation graphic
         let engineEmitter = SKEmitterNode(fileNamed: "engine.sks")
         // Position it
-        engineEmitter!.position = CGPoint(x: 1, y: -4)
+        engineEmitter!.position = CGPoint(x: 0, y: -20)
         engineEmitter!.name = "engineEmitter"
         // Set the width and height based upon the size of the ship
         engineEmitter!.particleSize = CGSize(width: self.size.width/4, height: self.size.height)
@@ -153,6 +185,7 @@ class PlayerShip: Entity {
         let mainScene = scene as! GameScene
         // and then add this to the bottom layer so that it sits beneith the ship
         engineEmitter!.targetNode = mainScene.starfieldLayerNode
+
     }
     
 }

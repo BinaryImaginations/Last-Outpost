@@ -17,6 +17,7 @@ class BulletParticleLaser: Bullet {
         
         name = EntityClassName.PlayerBullet.rawValue
         
+        entitySize = Size.Small
         collisionDamage = 2
         damage = 2
         configureCollisionBody()

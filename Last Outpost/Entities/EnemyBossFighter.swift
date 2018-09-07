@@ -55,6 +55,7 @@ class EnemyBossFighter: Enemy, SKPhysicsContactDelegate {
         scoreLabel.fontSize = 25
         scoreLabel.fontColor = SKColor(red: 0.5, green: 1, blue: 1, alpha: 1)
         scoreLabel.text = String(score)
+        entitySize = Size.Large
         
         railGun = true
         railGunFireInterval = 0.5

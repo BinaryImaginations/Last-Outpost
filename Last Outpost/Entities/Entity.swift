@@ -27,7 +27,19 @@ class Entity: SKSpriteNode {
         case PlayerBullet = "PlayerBullet"
         case EnemyBullet = "EnemyBullet"
     }
-
+    
+    //
+    // We use the size to determine the size of the special effects
+    enum Size: Double {
+        case Tiny = 0.1
+        case Small = 0.25
+        case Medium = 0.5
+        case Normal = 1.0
+        case Large = 1.5
+        case VeryLarge = 2.0
+        case Huge = 3.0
+    }
+    
     var direction = CGPoint.zero
     var health = 100.0
     var maxHealth = 100.0
@@ -35,6 +47,7 @@ class Entity: SKSpriteNode {
     var funds: Int = 0
     var lives: Int = 1  // Number of times to respawn
     var collisionDamage: Int = 1
+    var entitySize: Size = .Normal
     
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)

@@ -48,7 +48,7 @@ class EnemyBossBomber: Enemy, SKPhysicsContactDelegate {
         lives = 1
         collisionDamage = 20
         enemyClass = EnemyClass.boss
-        
+        entitySize = Size.Large
         Enemy.loadSharedAssets()
         configureCollisionBody()
         

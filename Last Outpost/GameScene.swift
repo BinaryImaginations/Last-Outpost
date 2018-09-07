@@ -1125,15 +1125,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func bulletCenterForward() {
         switch(playerShipCenterCannon) {
         case .railGun:
-            let bullet = BulletRailGun(entityPosition: playerShip.position)
+            let bullet = BulletRailGun(entityPosition: CGPoint(x: playerShip.position.x, y: playerShip.position.y+25))
             playerBulletLayerNode.addChild(bullet)
             bullet.run(SKAction.sequence([SKAction.moveBy(x: 1, y: size.height+20, duration: 1), SKAction.removeFromParent()]))
         case .particleLaser:
-            let bullet = BulletParticleLaser(entityPosition: playerShip.position)
+            let bullet = BulletParticleLaser(entityPosition: CGPoint(x: playerShip.position.x, y: playerShip.position.y+25))
             playerBulletLayerNode.addChild(bullet)
             bullet.run(SKAction.sequence([SKAction.moveBy(x: 1, y: size.height+20, duration: 1), SKAction.removeFromParent()]))
         case .protonLaser:
-            let bullet = BulletProtonLaser(entityPosition: playerShip.position)
+            let bullet = BulletProtonLaser(entityPosition: CGPoint(x: playerShip.position.x, y: playerShip.position.y+25))
             playerBulletLayerNode.addChild(bullet)
             bullet.run(SKAction.sequence([SKAction.moveBy(x: 1, y: size.height+20, duration: 1), SKAction.removeFromParent()]))
         }
@@ -1147,24 +1147,24 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             break
         case .railGun:
             // Double bullet
-            let bullet1 = BulletRailGun(entityPosition: CGPoint(x: playerShip.position.x-20, y: playerShip.position.y))
-            let bullet2 = BulletRailGun(entityPosition: CGPoint(x: playerShip.position.x+20, y: playerShip.position.y))
+            let bullet1 = BulletRailGun(entityPosition: CGPoint(x: playerShip.position.x-19, y: playerShip.position.y+20))
+            let bullet2 = BulletRailGun(entityPosition: CGPoint(x: playerShip.position.x+19, y: playerShip.position.y+20))
             playerBulletLayerNode.addChild(bullet1)
             playerBulletLayerNode.addChild(bullet2)
             bullet1.run(SKAction.sequence([SKAction.moveBy(x: 1, y: size.height, duration: 1), SKAction.removeFromParent()]))
             bullet2.run(SKAction.sequence([SKAction.moveBy(x: 1, y: size.height, duration: 1), SKAction.removeFromParent()]))
         case .particleLaser:
             // Double bullet
-            let bullet1 = BulletParticleLaser(entityPosition: CGPoint(x: playerShip.position.x-20, y: playerShip.position.y))
-            let bullet2 = BulletParticleLaser(entityPosition: CGPoint(x: playerShip.position.x+20, y: playerShip.position.y))
+            let bullet1 = BulletParticleLaser(entityPosition: CGPoint(x: playerShip.position.x-19, y: playerShip.position.y+20))
+            let bullet2 = BulletParticleLaser(entityPosition: CGPoint(x: playerShip.position.x+19, y: playerShip.position.y+20))
             playerBulletLayerNode.addChild(bullet1)
             playerBulletLayerNode.addChild(bullet2)
             bullet1.run(SKAction.sequence([SKAction.moveBy(x: 1, y: size.height, duration: 1), SKAction.removeFromParent()]))
             bullet2.run(SKAction.sequence([SKAction.moveBy(x: 1, y: size.height, duration: 1), SKAction.removeFromParent()]))
         case .protonLaser:
             // Double bullet
-            let bullet1 = BulletProtonLaser(entityPosition: CGPoint(x: playerShip.position.x-20, y: playerShip.position.y))
-            let bullet2 = BulletProtonLaser(entityPosition: CGPoint(x: playerShip.position.x+20, y: playerShip.position.y))
+            let bullet1 = BulletProtonLaser(entityPosition: CGPoint(x: playerShip.position.x-19, y: playerShip.position.y+20))
+            let bullet2 = BulletProtonLaser(entityPosition: CGPoint(x: playerShip.position.x+19, y: playerShip.position.y+20))
             playerBulletLayerNode.addChild(bullet1)
             playerBulletLayerNode.addChild(bullet2)
             bullet1.run(SKAction.sequence([SKAction.moveBy(x: 1, y: size.height, duration: 1), SKAction.removeFromParent()]))

@@ -17,6 +17,7 @@ class EnemyBulletRailGun: Bullet {
         
         name = EntityClassName.EnemyBullet.rawValue
         
+        entitySize = Size.Tiny
         collisionDamage = 1
         damage = 1
         health = 1
