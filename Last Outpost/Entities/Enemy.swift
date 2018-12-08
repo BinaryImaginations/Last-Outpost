@@ -194,12 +194,22 @@ class Enemy : Entity {
         // New actions are going to be added to this enemy so remove all the current actions they have
         removeAllActions()
         
-        // If the enemy was hit on the left side then run the hitLeftAction otherwise run the hitRightAction.
-        // This gives a nice impression of an actual collision
-        if localContactPoint.x < 0 {
-            run(SharedAssets.hitLeftAction)
-        } else {
-            run(SharedAssets.hitRightAction)
+        // Depending on if the emeny was hit from above or below, we need to rotate the enemy
+        // If the enemy was hit from above, reverse the rotation
+        //   If the enemy was hit on the left side then run the hitLeftAction otherwise run the hitRightAction.
+        //   This gives a nice impression of an actual collision
+        if (localContactPoint.y < 0) {  // Hit from below
+            if localContactPoint.x < 0 {
+                run(SharedAssets.hitLeftAction)
+            } else {
+                run(SharedAssets.hitRightAction)
+            }
+        } else {  // Hit from above
+            if localContactPoint.x < 0 {
+                run(SharedAssets.hitRightAction)
+            } else {
+                run(SharedAssets.hitLeftAction)
+            }
         }
         
         // Run the damage action so that the player has a visual queue that the enemy has been damaged

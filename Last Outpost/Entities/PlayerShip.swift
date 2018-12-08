@@ -12,6 +12,7 @@ class PlayerShip: Entity {
     
     let ventingPlasma:SKEmitterNode = SKEmitterNode(fileNamed: "ventingPlasma.sks")!
     let damageEmitter:SKEmitterNode = SKEmitterNode(fileNamed: "ventingPlasma.sks")!
+    let startShowingPlasma = 30.0  // Health value to start showing the plasma affect
     
     init(entityPosition: CGPoint) {
         let entityTexture = PlayerShip.generateTexture()!
@@ -147,7 +148,7 @@ class PlayerShip: Entity {
     
     override func collidedWith(_ body: SKPhysicsBody, contact: SKPhysicsContact, damage: Int = 5) {
         // This method is called from GameScene didBeginContact(contact:) when the player entity
-        // hits an enemy entity. When that happens the players health is reduced by 5 and a check
+        // hits an enemy entity. When that happens the players health is reduced by 'n'' and a check
         // makes sure that the health cannot drop below zero
         let mainScene = scene as! GameScene
         mainScene.playExplodeSound()
@@ -157,8 +158,12 @@ class PlayerShip: Entity {
             health = 0
         }
         
-        ventingPlasma.isHidden = health > 30
-
+        if (health <= startShowingPlasma) {
+            ventingPlasma.isHidden = false
+            // Show the plasma as a % of the damage taken
+            ventingPlasma.alpha = CGFloat((1.0 - (health / startShowingPlasma)))
+        }
+            
         damageEmitter.setScale(CGFloat(1.0))
         damageEmitter.isHidden = false
         damageEmitter.alpha = 0.9

@@ -37,7 +37,7 @@ class EnemyBulletStaticGun: Bullet {
         
         DispatchQueue.once(token: SharedTexture.onceToken) {
             let bullet = SKLabelNode(fontNamed: "Arial")
-            bullet.name = "enemyBulletRailGun"
+            bullet.name = "enemyBulletStaticGun"
             bullet.fontSize = 75
             bullet.fontColor = SKColor(red: 0.9, green: 0.9, blue: 1, alpha: 1)
             bullet.text = "*"

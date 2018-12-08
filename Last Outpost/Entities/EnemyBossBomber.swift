@@ -22,7 +22,7 @@ class EnemyBossBomber: Enemy, SKPhysicsContactDelegate {
             let mainShip:SKLabelNode = SKLabelNode(fontNamed: "Arial")
             mainShip.name = "mainship"
             mainShip.fontSize = 33
-            mainShip.fontColor = SKColor.yellow
+            mainShip.fontColor = SKColor.black
             mainShip.text = "(-x=⚉=x-)"
             
             let textureView = SKView()

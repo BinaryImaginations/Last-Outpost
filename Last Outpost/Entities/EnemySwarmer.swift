@@ -21,7 +21,7 @@ class EnemySwarmer: Enemy, SKPhysicsContactDelegate {
         DispatchQueue.once(token: SharedTexture.onceToken) {
             let mainShip:SKLabelNode = SKLabelNode(fontNamed: "Arial")
             mainShip.name = "mainship"
-            mainShip.fontSize = 22
+            mainShip.fontSize = 18
             mainShip.fontColor = SKColor.orange
             mainShip.text = "<⚉>"
             let textureView = SKView()
@@ -62,7 +62,7 @@ class EnemySwarmer: Enemy, SKPhysicsContactDelegate {
         
         // Changing the maxVelicity and maxSteeringForce will change how an entity moves towards its waypoint.
         // Changing these values can generate some interesting movement effects
-        aiSteering.maxVelocity = 30.0
+        aiSteering.maxVelocity = 25.0
         aiSteering.maxSteeringForce = 0.75
     }
 
@@ -94,7 +94,6 @@ class EnemySwarmer: Enemy, SKPhysicsContactDelegate {
         aiSteering.maxVelocity = 30.0
         aiSteering.maxSteeringForce = 0.75
     }
-
-    
+   
 }
 

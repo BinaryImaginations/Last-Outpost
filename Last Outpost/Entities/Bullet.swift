@@ -9,11 +9,5 @@
 import UIKit
 
 class Bullet: Entity {
-    enum BulletDirection {
-        case Up
-        case Down
-    }
-    
-    var bulletDirection: BulletDirection = .Up
     var damage: Int = 1  // Default damage
 }
