@@ -27,6 +27,8 @@ class Enemy : Entity {
     var railGun: Bool = false
     var staticGun: Bool = false
     var railGunFireInterval: TimeInterval = 0.0
+    var railGunBurstFireNumber: Int = 0
+    var railGunBurstFireCurrentNumber: Int = 0
     var railGunTimeLastFired: TimeInterval = 0.0
     var staticGunFireInterval: TimeInterval = 0.0
     var staticGunTimeLastFired: TimeInterval = 0.0
@@ -81,7 +83,9 @@ class Enemy : Entity {
                     ]),
                 SKAction.group([
                     SKAction.moveBy(x: 0, y: 40, duration: 1),
-                    SKAction.fadeOut(withDuration: 1)
+                    SKAction.fadeOut(withDuration: 1),
+                    SKAction.wait(forDuration: 1.0),
+                    SKAction.removeFromParent()
                     ]),
                 ])
         }

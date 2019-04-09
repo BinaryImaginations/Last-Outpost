@@ -59,14 +59,14 @@ class PlayerShip: Entity {
             // Use ASCII for the ship
             let mainShip = SKLabelNode(fontNamed: "Arial")
             mainShip.name = "mainship"
-            mainShip.fontSize = 40
+            mainShip.fontSize = 30
             mainShip.fontColor = SKColor.white
             mainShip.text = "▲"
             // 3
-            let wings = SKLabelNode(fontNamed: "PF TempestaSeven")
+            let wings = SKLabelNode(fontNamed: "PF Tempesta Seven")
             wings.name = "wings"
-            wings.fontSize = 40
-            wings.text = "< >"
+            wings.fontSize = 30
+            wings.text = "<•>"
             //wings.text = "≤ ≥"
             wings.fontColor = SKColor.white
             wings.position = CGPoint(x: 1, y: 7)
@@ -76,20 +76,20 @@ class PlayerShip: Entity {
             wings.zRotation = CGFloat(180).degreesToRadians()
             wings.zPosition = mainShip.zPosition - 1
 
-            let guns = SKLabelNode(fontNamed: "PF TempestaSeven")
+            let guns = SKLabelNode(fontNamed: "PF Tempesta Seven")
             guns.name = "guns"
-            guns.fontSize = 40
+            guns.fontSize = 30
             // wings.text = "< >"
             guns.text = "∏"
             guns.fontColor = SKColor.blue
-            guns.position = CGPoint(x: 2, y: 18)
+            guns.position = CGPoint(x: 0, y: 18)
             guns.yScale = 0.75
             guns.xScale = 2.0
             // 4
             guns.zRotation = CGFloat(180).degreesToRadians()
             guns.zPosition = mainShip.zPosition - 2
 
-            let decoration = SKLabelNode(fontNamed: "PF TempestaSeven")
+            let decoration = SKLabelNode(fontNamed: "PF Tempesta Seven")
             decoration.alpha = 1.0
             decoration.name = "guns"
             decoration.fontSize = 20

@@ -41,6 +41,7 @@
 		B9752CC1213CF61300EDA3B0 /* electriccurrent.wav in Resources */ = {isa = PBXBuildFile; fileRef = B9752CC0213CF61300EDA3B0 /* electriccurrent.wav */; };
 		B9752CC3213D9AA200EDA3B0 /* Bullet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9752CC2213D9AA200EDA3B0 /* Bullet.swift */; };
 		B9752CC5213DA43600EDA3B0 /* pew.wav in Resources */ = {isa = PBXBuildFile; fileRef = B9752CC4213DA43600EDA3B0 /* pew.wav */; };
+		B9A18E3C225BF7B5009251A7 /* pf_tempesta_seven.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B9A18E3B225BF428009251A7 /* pf_tempesta_seven.ttf */; };
 		B9BC75572135D1370024666F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9BC75562135D1370024666F /* AppDelegate.swift */; };
 		B9BC755D2135D1370024666F /* GameScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9BC755C2135D1370024666F /* GameScene.swift */; };
 		B9BC755F2135D1370024666F /* GameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9BC755E2135D1370024666F /* GameViewController.swift */; };
@@ -104,6 +105,7 @@
 		B9752CC0213CF61300EDA3B0 /* electriccurrent.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = electriccurrent.wav; sourceTree = "<group>"; };
 		B9752CC2213D9AA200EDA3B0 /* Bullet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bullet.swift; sourceTree = "<group>"; };
 		B9752CC4213DA43600EDA3B0 /* pew.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = pew.wav; sourceTree = "<group>"; };
+		B9A18E3B225BF428009251A7 /* pf_tempesta_seven.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = pf_tempesta_seven.ttf; sourceTree = "<group>"; };
 		B9BC75532135D1370024666F /* Last Outpost.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Last Outpost.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B9BC75562135D1370024666F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		B9BC755C2135D1370024666F /* GameScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameScene.swift; sourceTree = "<group>"; };
@@ -210,6 +212,7 @@
 		B943E32D213604D5000777CD /* Fonts */ = {
 			isa = PBXGroup;
 			children = (
+				B9A18E3B225BF428009251A7 /* pf_tempesta_seven.ttf */,
 				B943E3252136046B000777CD /* edunline.ttf */,
 			);
 			path = Fonts;
@@ -399,6 +402,7 @@
 				B923535E21389A5D0025D30E /* enemyDeath.sks in Resources */,
 				B9BC758F2135D4F90024666F /* LaunchScreen.xib in Resources */,
 				B9752CB3213BA44800EDA3B0 /* levelcomplete.mp3 in Resources */,
+				B9A18E3C225BF7B5009251A7 /* pf_tempesta_seven.ttf in Resources */,
 				B9BC75622135D1370024666F /* Main.storyboard in Resources */,
 				B9752CB5213BA5CA00EDA3B0 /* gameover.mp3 in Resources */,
 				B9BC75642135D13B0024666F /* Images.xcassets in Resources */,

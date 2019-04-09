@@ -57,6 +57,11 @@ class EnemySwarmer: Enemy, SKPhysicsContactDelegate {
         scoreLabel.fontColor = SKColor(red:0.5, green:1, blue:1, alpha:1)
         scoreLabel.text = String(score)
         
+        railGun = false
+        railGunFireInterval = 5.0
+        railGunBurstFireNumber = 3
+        railGunBurstFireCurrentNumber = 0
+        
         // Set a default waypoint. The actual waypoint will be called by whoever created this instance
         aiSteering = AISteering(entity:self, waypoint:CGPoint.zero)
         
@@ -85,6 +90,11 @@ class EnemySwarmer: Enemy, SKPhysicsContactDelegate {
         scoreLabel.fontSize = 30
         scoreLabel.fontColor = SKColor(red:0.5, green:1, blue:1, alpha:1)
         scoreLabel.text = String(score)
+
+        railGun = false
+        railGunFireInterval = 5.0
+        railGunBurstFireNumber = 3
+        railGunBurstFireCurrentNumber = 0
         
         // Set a default waypoint. The actual waypoint will be called by whoever created this instance
         aiSteering = AISteering(entity:self, waypoint:CGPoint.zero)

@@ -23,6 +23,7 @@
 	<key>UIAppFonts</key>
 	<array>
 		<string>edunline.ttf</string>
+		<string>pf_tempesta_seven.ttf</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>

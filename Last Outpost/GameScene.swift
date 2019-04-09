@@ -47,7 +47,7 @@ enum GameDifficulty: Double {
     case easy = 1.25
     case normal = 1.0
     case hard = 0.8
-    case extreme = 0.3
+    case extreme = 0.5
 }
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
@@ -63,7 +63,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     let playerLayerNode = SKNode()  // Contains the player ship images and effects
     let hudLayerNode = SKNode()  // Contains the score, health, press any key messages
     let playerBulletLayerNode = SKNode()  // Contains the player's bullets
-    let enemyBulletLayerNode = SKNode()  // Contains the enemies bullets
+    let enemyBulletLayerNode = SKNode()   // Contains the enemies bullets
     var enemyLayerNode = SKNode()  // Contains the enemy ship images and effects
     let starfieldLayerNode = SKNode()  // Contains the starfield particles (background)
     
@@ -123,14 +123,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // Enemy Definitions:
     //   Scouts
     var enemyScoutsLevelFirstAppear: Int = 1
-    var enemyScoutsStartingNumber: Int = 5
+    var enemyScoutsStartingNumber: Int = 3
     var enemyScoutsStartingHPs: Double = 5.0
     var enemyScoutsHPStrengthMultiplier: Double = 0.05
     var enemyScoutsLevelsToAddAdditional: Int = 1
-    var enemyScoutsMaximumNumber: Int = 10
+    var enemyScoutsMaximumNumber: Int = 5
     var enemyScoutsLevelGainAdditionalLives: Int = 10
-    var enemyScoutsMaximumNumberOfAdditioinalLives: Int = 2
-    var enemyScoutSpawnDelay: Double = 4.0
+    var enemyScoutsMaximumNumberOfAdditioinalLives: Int = 3
+    var enemyScoutSpawnDelay: Double = 2.0
     var enemyScoutsSpawnMinimum: Double = 0.0
 
     //   Swarmers
@@ -142,11 +142,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var enemySwarmersMaximumNumber: Int = 20
     var enemySwarmersLevelGainAdditionalLives: Int = 1
     var enemySwarmersMaximumNumberOfAdditioinalLives: Int = 0
-    var enemySwarmersSpawnDelay: Double = 5.0
+    var enemySwarmersSpawnDelay: Double = 7.5
     var enemySwarmersSpawnMinimum: Double = 0.5
 
     //   Fighters
-    var enemyFightersLevelFirstAppear: Int = 9
+    var enemyFightersLevelFirstAppear: Int = 10
     var enemyFightersStartingNumber: Int = 2
     var enemyFightersStartingHPs: Double = 7.0
     var enemyFightersHPStrengthMultiplier: Double = 0.05
@@ -154,7 +154,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var enemyFightersMaximumNumber: Int = 10
     var enemyFightersLevelGainAdditionalLives: Int = 20
     var enemyFightersMaximumNumberOfAdditioinalLives: Int = 2
-    var enemyFightersSpawnDelay: Double = 4.0
+    var enemyFightersSpawnDelay: Double = 5.0
     var enemyFightersSpawnMinimum: Double = 4.0
 
     //   Boss Fighter
@@ -171,11 +171,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var enemyBossFightersSpawnMinimum: Double = 5.0
     
     //   Boss Bombers
-    var enemyBossBombersLevelFirstAppear: Int = 39
+    var enemyBossBombersLevelFirstAppear: Int = 29
     var enemyBossBombersStartingNumber: Int = 1
     var enemyBossBombersStartingHPs: Double = 50.0
     var enemyBossBombersHPStrengthMultiplier: Double = 0.1
-    var enemyBossBombersLevelsToAddAdditional: Int = 20
+    var enemyBossBombersLevelsToAddAdditional: Int = 10
     var enemyBossBombersMaximumNumber: Int = 4
     var enemyBossBombersLevelGainAdditionalLives: Int = 20
     var enemyBossBombersMaximumNumberOfAdditioinalLives: Int = 1
@@ -588,6 +588,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // Setup the initial screen node layers
     // Notes:  Here we set the z axis values of the nodes and create the starfield background
     func setupSceneLayers() {
+        // Set the node names
+        playerLayerNode.name = "PlayerLayerNode"
+        hudLayerNode.name = "HUDLayerNode"
+        playerBulletLayerNode.name = "PlayerBulletLayerNode"
+        enemyBulletLayerNode.name = "EnemyBulletLayerNode"
+        enemyLayerNode.name = "EnemyLayerNode"
+        starfieldLayerNode.name = "StarfieldLayerNode"
+        
         // Setup the z axis for the nodes.  The higher the number, the closer the node is to the user (i.e. on top of
         // the other nodes).
         hudLayerNode.zPosition = 100
@@ -827,7 +835,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Setup the entities
         setupEntities()
-        
+        // Upgrade weapons if needed
         upgradeWeapons()
 
         // Reset the players health and position
@@ -921,9 +929,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // Bonus Levels
     func addBonusEnemies() {
-        var number: Int = 15 + ((wave+1)/5) * 5
-        if (number > enemySwarmersMaximumNumber * 10) {
-            number = enemySwarmersMaximumNumber * 10
+        var number: Int = 5 + ((wave+1)/bonusWaveInterval) * 5
+        if (number > enemySwarmersMaximumNumber * 5) {
+            number = enemySwarmersMaximumNumber * 5
         }
         for _ in 0..<number {
             let enemy = EnemySwarmer(entityPosition: CGPoint(
@@ -933,6 +941,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             enemy.aiSteering.updateWaypoint(initialWaypoint)
             enemy.health = 5
             enemy.maxHealth = 5
+            enemy.collisionDamage = 0
             enemy.speed = CGFloat(1.0 / programDifficulty.rawValue)
             enemy.lives = 1 + 99 // For the bonus mode, just keep adding new lives
             enemy.setSpawnDelay(Double(CGFloat.random())*enemySwarmersSpawnDelay + enemySwarmersSpawnMinimum)
@@ -1013,6 +1022,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             if (wave - enemySwarmersLevelFirstAppear >= enemySwarmersLevelGainAdditionalLives) {
                 enemy.lives = 1 + additionalLives
             }
+            // Upgrade swarmers so that they can multi fire a rail gun - use a random so you don't know which ones are upgraded
+            if (wave > 20 && Bool.random()) {
+                // Enable the fire mode
+                enemy.railGun = true
+            }
             enemy.setSpawnDelay(Double(CGFloat.random())*enemySwarmersSpawnDelay + enemySwarmersSpawnMinimum)
             enemyLayerNode.addChild(enemy)
         }
@@ -1050,6 +1064,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 enemy.maxHealth = enemy.health
                 enemy.speed = CGFloat(1.0 / programDifficulty.rawValue)
                 enemy.railGunFireInterval *= programDifficulty.rawValue
+                enemy.railGunBurstFireNumber = 1
+                enemy.railGunBurstFireCurrentNumber = 0
                 if (wave - enemyFightersLevelFirstAppear >= enemyFightersLevelGainAdditionalLives) {
                     enemy.lives = 1 + additionalLives
                 }
@@ -1127,6 +1143,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         enemy.speed = CGFloat(0.25 / programDifficulty.rawValue)
         enemy.railGunFireInterval *= programDifficulty.rawValue
+        enemy.railGunBurstFireNumber = 1
+        enemy.railGunBurstFireCurrentNumber = 0
         enemy.setSpawnDelay(Double(CGFloat.random())*enemyBossFightersSpawnDelay + enemyBossFightersSpawnMinimum)
         enemyLayerNode.addChild(enemy)
     }
@@ -1169,7 +1187,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             if (enemy.railGun && enemy.spawned) {
                 // If the gun has never been fired
                 if enemy.railGunTimeLastFired <= 0.0 {
-                    enemy.railGunTimeLastFired = enemy.spawnTime  // Set the last time fired to the spawn time
+                    // Set the time to the current time plus a random amount to mix things up
+                    enemy.railGunTimeLastFired = enemy.spawnTime + Double.random(in: 0..<enemy.railGunFireInterval)
                 }
                 // Get the delta since the last firing
                 let enemyLastFiredDelta = currentTime - enemy.railGunTimeLastFired
@@ -1190,8 +1209,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                     let group = SKAction.group([movement, colorPulseRed, pewSound])
                     // Execute the group
                     bullet.run(group)
-                    
-                    enemy.railGunTimeLastFired = currentTime  // Reset the time to the current time
+                    enemy.railGunBurstFireCurrentNumber += 1
+                    if (enemy.railGunBurstFireCurrentNumber >= enemy.railGunBurstFireNumber) {
+                        enemy.railGunBurstFireCurrentNumber = 0
+                        enemy.railGunTimeLastFired = currentTime  // Reset the time to the current time
+                    }
                 }
             }
             // If the enemy has a static gun and has spawned
@@ -1267,24 +1289,24 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             break
         case .railGun:
             // Double bullet
-            let bullet1 = BulletRailGun(entityPosition: CGPoint(x: playerShip.position.x-19, y: playerShip.position.y+20))
-            let bullet2 = BulletRailGun(entityPosition: CGPoint(x: playerShip.position.x+19, y: playerShip.position.y+20))
+            let bullet1 = BulletRailGun(entityPosition: CGPoint(x: playerShip.position.x-14, y: playerShip.position.y+20))
+            let bullet2 = BulletRailGun(entityPosition: CGPoint(x: playerShip.position.x+14, y: playerShip.position.y+20))
             playerBulletLayerNode.addChild(bullet1)
             playerBulletLayerNode.addChild(bullet2)
             bullet1.run(SKAction.sequence([SKAction.moveBy(x: 1, y: size.height, duration: 1), SKAction.removeFromParent()]))
             bullet2.run(SKAction.sequence([SKAction.moveBy(x: 1, y: size.height, duration: 1), SKAction.removeFromParent()]))
         case .particleLaser:
             // Double bullet
-            let bullet1 = BulletParticleLaser(entityPosition: CGPoint(x: playerShip.position.x-19, y: playerShip.position.y+20))
-            let bullet2 = BulletParticleLaser(entityPosition: CGPoint(x: playerShip.position.x+19, y: playerShip.position.y+20))
+            let bullet1 = BulletParticleLaser(entityPosition: CGPoint(x: playerShip.position.x-14, y: playerShip.position.y+20))
+            let bullet2 = BulletParticleLaser(entityPosition: CGPoint(x: playerShip.position.x+14, y: playerShip.position.y+20))
             playerBulletLayerNode.addChild(bullet1)
             playerBulletLayerNode.addChild(bullet2)
             bullet1.run(SKAction.sequence([SKAction.moveBy(x: 1, y: size.height, duration: 1), SKAction.removeFromParent()]))
             bullet2.run(SKAction.sequence([SKAction.moveBy(x: 1, y: size.height, duration: 1), SKAction.removeFromParent()]))
         case .protonLaser:
             // Double bullet
-            let bullet1 = BulletProtonLaser(entityPosition: CGPoint(x: playerShip.position.x-19, y: playerShip.position.y+20))
-            let bullet2 = BulletProtonLaser(entityPosition: CGPoint(x: playerShip.position.x+19, y: playerShip.position.y+20))
+            let bullet1 = BulletProtonLaser(entityPosition: CGPoint(x: playerShip.position.x-14, y: playerShip.position.y+20))
+            let bullet2 = BulletProtonLaser(entityPosition: CGPoint(x: playerShip.position.x+14, y: playerShip.position.y+20))
             playerBulletLayerNode.addChild(bullet1)
             playerBulletLayerNode.addChild(bullet2)
             bullet1.run(SKAction.sequence([SKAction.moveBy(x: 1, y: size.height, duration: 1), SKAction.removeFromParent()]))
@@ -1300,24 +1322,24 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             break
         case .railGun:
             // Double bullet
-            let bullet1 = BulletRailGun(entityPosition: CGPoint(x: playerShip.position.x-10, y: playerShip.position.y))
-            let bullet2 = BulletRailGun(entityPosition: CGPoint(x: playerShip.position.x+10, y: playerShip.position.y))
+            let bullet1 = BulletRailGun(entityPosition: CGPoint(x: playerShip.position.x-10, y: playerShip.position.y-10))
+            let bullet2 = BulletRailGun(entityPosition: CGPoint(x: playerShip.position.x+10, y: playerShip.position.y-10))
             playerBulletLayerNode.addChild(bullet1)
             playerBulletLayerNode.addChild(bullet2)
             bullet1.run(SKAction.sequence([SKAction.moveBy(x: -1, y: -size.height, duration: 1), SKAction.removeFromParent()]))
             bullet2.run(SKAction.sequence([SKAction.moveBy(x: -1, y: -size.height, duration: 1), SKAction.removeFromParent()]))
         case .particleLaser:
             // Double bullet
-            let bullet1 = BulletParticleLaser(entityPosition: CGPoint(x: playerShip.position.x-10, y: playerShip.position.y))
-            let bullet2 = BulletParticleLaser(entityPosition: CGPoint(x: playerShip.position.x+10, y: playerShip.position.y))
+            let bullet1 = BulletParticleLaser(entityPosition: CGPoint(x: playerShip.position.x-10, y: playerShip.position.y-10))
+            let bullet2 = BulletParticleLaser(entityPosition: CGPoint(x: playerShip.position.x+10, y: playerShip.position.y-10))
             playerBulletLayerNode.addChild(bullet1)
             playerBulletLayerNode.addChild(bullet2)
             bullet1.run(SKAction.sequence([SKAction.moveBy(x: -1, y: -size.height, duration: 1), SKAction.removeFromParent()]))
             bullet2.run(SKAction.sequence([SKAction.moveBy(x: -1, y: -size.height, duration: 1), SKAction.removeFromParent()]))
         case .protonLaser:
             // Double bullet
-            let bullet1 = BulletProtonLaser2(entityPosition: CGPoint(x: playerShip.position.x-10, y: playerShip.position.y))
-            let bullet2 = BulletProtonLaser2(entityPosition: CGPoint(x: playerShip.position.x+10, y: playerShip.position.y))
+            let bullet1 = BulletProtonLaser2(entityPosition: CGPoint(x: playerShip.position.x-10, y: playerShip.position.y-10))
+            let bullet2 = BulletProtonLaser2(entityPosition: CGPoint(x: playerShip.position.x+10, y: playerShip.position.y-10))
             playerBulletLayerNode.addChild(bullet1)
             playerBulletLayerNode.addChild(bullet2)
             bullet1.run(SKAction.sequence([SKAction.moveBy(x: -1, y: -size.height, duration: 1), SKAction.removeFromParent()]))
@@ -1407,6 +1429,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     func printNodes() {
         print("Start:")
+//        for node in self.children {
+//            printNodes(name: node.name ?? "Unknown", node: node)
+//        }
         printNodes(name: "  playerLayerNode", node: playerLayerNode)
         printNodes(name: "  hudLayerNode", node: hudLayerNode)
         printNodes(name: "  playerBulletLayerNode", node: playerBulletLayerNode)

@@ -58,6 +58,8 @@ class EnemyFighter: Enemy, SKPhysicsContactDelegate {
         
         railGun = true
         railGunFireInterval = 3.0
+        railGunBurstFireNumber = 1
+        railGunBurstFireCurrentNumber = 0
         
         // Set a default waypoint. The actual waypoint will be called by whoever created this instance
         aiSteering = AISteering(entity: self, waypoint: CGPoint.zero)
