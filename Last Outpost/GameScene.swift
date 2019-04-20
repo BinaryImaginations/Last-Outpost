@@ -50,6 +50,16 @@ enum GameDifficulty: Double {
     case extreme = 0.5
 }
 
+enum EnemyType {
+    case None
+    case Scout
+    case Fighter
+    case Swarmer
+    case AdvancedSwarmer
+    case AdvancedFighter
+    case AdvancedBomber
+}
+
 class GameScene: SKScene, SKPhysicsContactDelegate {
     let startingWave: Int = 1 // Used for setting a starting level if you want to debug it
     let bonusWaveInterval: Int = 10 // The bonus wave interval (i.e. bonus every 'n' waves)
@@ -80,7 +90,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // during the game.  These variables allow us to try and standarize on a set speed indepenent
     // of the processor CPU speed.  We limit the movement of an enemy, for instance, to 30 mps (movements
     // per second).
-    var lastEnemyExecutionTime: TimeInterval = 0.0
     let enemyExecutionGovernor: TimeInterval = 1.0 / 30.0  // 30 mps
     var playerBulletExecutionTime: TimeInterval = 0.0
     let playerBulletsPerSecond: Float = 4.0
@@ -119,86 +128,98 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var bonusTimeMaxRegenerationPercent = 0.5
     var bonusTime: Int = 30
     let countdownLabel = SKLabelNode(fontNamed: "Edit Undo Line BRK")
+    let waveTitleDisplayTime: Double = 5.0
 
-    // Enemy Definitions:
-    //   Scouts
-    var enemyScoutsLevelFirstAppear: Int = 1
-    var enemyScoutsStartingNumber: Int = 3
-    var enemyScoutsStartingHPs: Double = 5.0
-    var enemyScoutsHPStrengthMultiplier: Double = 0.05
-    var enemyScoutsLevelsToAddAdditional: Int = 1
-    var enemyScoutsMaximumNumber: Int = 5
-    var enemyScoutsLevelGainAdditionalLives: Int = 10
-    var enemyScoutsMaximumNumberOfAdditioinalLives: Int = 3
-    var enemyScoutSpawnDelay: Double = 2.0
-    var enemyScoutsSpawnMinimum: Double = 0.0
-
-    //   Swarmers
-    var enemySwarmersLevelFirstAppear: Int = 5
-    var enemySwarmersStartingNumber: Int = 3
-    var enemySwarmersStartingHPs: Double = 3.0
-    var enemySwarmersHPStrengthMultiplier: Double = 0.05
-    var enemySwarmersLevelsToAddAdditional: Int = 5
-    var enemySwarmersMaximumNumber: Int = 20
-    var enemySwarmersLevelGainAdditionalLives: Int = 1
-    var enemySwarmersMaximumNumberOfAdditioinalLives: Int = 0
-    var enemySwarmersSpawnDelay: Double = 7.5
-    var enemySwarmersSpawnMinimum: Double = 0.5
-
-    //   Fighters
-    var enemyFightersLevelFirstAppear: Int = 10
-    var enemyFightersStartingNumber: Int = 2
-    var enemyFightersStartingHPs: Double = 7.0
-    var enemyFightersHPStrengthMultiplier: Double = 0.05
-    var enemyFightersLevelsToAddAdditional: Int = 5
-    var enemyFightersMaximumNumber: Int = 10
-    var enemyFightersLevelGainAdditionalLives: Int = 20
-    var enemyFightersMaximumNumberOfAdditioinalLives: Int = 2
-    var enemyFightersSpawnDelay: Double = 5.0
-    var enemyFightersSpawnMinimum: Double = 4.0
-
-    //   Boss Fighter
-    var enemyBossFightersLevelFirstAppear: Int = 19
-    var enemyBossFightersStartingNumber: Int = 1
-    var enemyBossFightersStartingHPs: Double = 25.0
-    var enemyBossFightersHPStrengthMultiplier: Double = 0.1
-    var enemyBossFightersLevelInterval: Int = 10
-    var enemyBossFightersLevelsToAddAdditional: Int = 10
-    var enemyBossFightersMaximumNumber: Int = 5
-    var enemyBossFightersLevelGainAdditionalLives: Int = 20
-    var enemyBossFightersMaximumNumberOfAdditioinalLives: Int = 1
-    var enemyBossFightersSpawnDelay: Double = 5.0
-    var enemyBossFightersSpawnMinimum: Double = 5.0
     
-    //   Boss Bombers
-    var enemyBossBombersLevelFirstAppear: Int = 29
-    var enemyBossBombersStartingNumber: Int = 1
-    var enemyBossBombersStartingHPs: Double = 50.0
-    var enemyBossBombersHPStrengthMultiplier: Double = 0.1
-    var enemyBossBombersLevelsToAddAdditional: Int = 10
-    var enemyBossBombersMaximumNumber: Int = 4
-    var enemyBossBombersLevelGainAdditionalLives: Int = 20
-    var enemyBossBombersMaximumNumberOfAdditioinalLives: Int = 1
-    var enemyBossBombersSpawnDelay: Double = 5.0
-    var enemyBossBombersSpawnMinimum: Double = 10.0
+    // Enemy Definitions:
+    struct EnemyWave {
+        var title: String?
+        var displayTitleDelay: Double = 0.0
+        var type: EnemyType = .None
+        var number: Int = 0
+        var hps: Double = 0.0
+        var lives: Int = 0
+        var spawnDelay: Double = 0.0
+        var spawnMinimum: Double = 0.0
+        var gunType: Enemy.GunType = .None
+    }
+    
+   
+//    //   Scouts
+//    var enemyScoutsStartingNumber: Int = 5
+//    var enemyScoutsStartingHPs: Double = 5.0
+//    var enemyScoutsHPStrengthMultiplier: Double = 0.05
+//    var enemyScoutsHPMax: Double = 15
+//    var enemyScoutsLevelToAddAdditional: Int = 5
+//    var enemyScoutsMaximumNumber: Int = 10
+//    var enemyScoutsLevelGainAdditionalLives: Int = 10
+//    var enemyScoutsMaximumNumberOfAdditioinalLives: Int = 3
+//    var enemyScoutSpawnDelay: Double = 2.0
+//    var enemyScoutsSpawnMinimum: Double = 0.0
+//
+//    //
+//    // Need to fix these like the Scouts
+//    //
+//
+//    //   Swarmers
+//    var enemySwarmersLevelFirstAppear: Int = 5
+//    var enemySwarmersStartingNumber: Int = 3
+//    var enemySwarmersStartingHPs: Double = 3.0
+//    var enemySwarmersHPStrengthMultiplier: Double = 0.05
+//    var enemySwarmersLevelToAddAdditional: Int = 5
+//    var enemySwarmersMaximumNumber: Int = 20
+//    var enemySwarmersLevelGainAdditionalLives: Int = 1
+//    var enemySwarmersLevelToEnableGuns: Int = 20
+//    var enemySwarmersMaximumNumberOfAdditioinalLives: Int = 0
+//    var enemySwarmersSpawnDelay: Double = 7.5
+//    var enemySwarmersSpawnMinimum: Double = 0.5
+//
+//    //   Fighters
+//    var enemyFightersLevelFirstAppear: Int = 10
+//    var enemyFightersStartingNumber: Int = 2
+//    var enemyFightersStartingHPs: Double = 7.0
+//    var enemyFightersHPStrengthMultiplier: Double = 0.05
+//    var enemyFightersLevelToAddAdditional: Int = 5
+//    var enemyFightersMaximumNumber: Int = 10
+//    var enemyFightersLevelGainAdditionalLives: Int = 20
+//    var enemyFightersMaximumNumberOfAdditioinalLives: Int = 2
+//    var enemyFightersSpawnDelay: Double = 5.0
+//    var enemyFightersSpawnMinimum: Double = 4.0
+//
+//    //   Boss Fighter
+//    var enemyBossFightersLevelFirstAppear: Int = 19
+//    var enemyBossFightersStartingNumber: Int = 1
+//    var enemyBossFightersStartingHPs: Double = 25.0
+//    var enemyBossFightersHPStrengthMultiplier: Double = 0.1
+//    var enemyBossFightersLevelInterval: Int = 10
+//    var enemyBossFightersLevelToAddAdditional: Int = 10
+//    var enemyBossFightersMaximumNumber: Int = 5
+//    var enemyBossFightersLevelGainAdditionalLives: Int = 20
+//    var enemyBossFightersMaximumNumberOfAdditioinalLives: Int = 1
+//    var enemyBossFightersSpawnDelay: Double = 5.0
+//    var enemyBossFightersSpawnMinimum: Double = 5.0
+//
+//    //   Boss Bombers
+//    var enemyBossBombersLevelFirstAppear: Int = 29
+//    var enemyBossBombersStartingNumber: Int = 1
+//    var enemyBossBombersStartingHPs: Double = 50.0
+//    var enemyBossBombersHPStrengthMultiplier: Double = 0.1
+//    var enemyBossBombersLevelToAddAdditional: Int = 10
+//    var enemyBossBombersMaximumNumber: Int = 4
+//    var enemyBossBombersLevelGainAdditionalLives: Int = 20
+//    var enemyBossBombersMaximumNumberOfAdditioinalLives: Int = 1
+//    var enemyBossBombersSpawnDelay: Double = 5.0
+//    var enemyBossBombersSpawnMinimum: Double = 10.0
     
     var laserSound: SKAction = SKAction.sequence([SKAction.playSoundFileNamed("laser.wav", waitForCompletion: false), SKAction.removeFromParent()])
-    var pewSound: SKAction = SKAction.sequence([SKAction.playSoundFileNamed(fileName: "pew.wav", atVolume: 1.0, waitForCompletion: false)])
     var explodeSound:  SKAction = SKAction.sequence([SKAction.playSoundFileNamed(fileName: "explode.wav",  atVolume: 0.8, waitForCompletion: false), SKAction.removeFromParent()])
     var levelCompleteSound:  SKAction = SKAction.sequence([SKAction.playSoundFileNamed(fileName: "levelcomplete.mp3", atVolume: 1.0, waitForCompletion: false), SKAction.removeFromParent()])
     var gameOverSound:  SKAction = SKAction.sequence([SKAction.playSoundFileNamed(fileName: "gameover.mp3", atVolume: 1.0, waitForCompletion: false), SKAction.removeFromParent()])
-    var electricSound:  SKAction = SKAction.sequence([SKAction.playSoundFileNamed(fileName: "electriccurrent.wav", atVolume: 1.0, waitForCompletion: false)])
     
     // Pulse action
-    let screenPulseAction = SKAction.repeatForever(SKAction.sequence([SKAction.fadeOut(withDuration: 1), SKAction.fadeIn(withDuration: 1)]))
-    // Rotate it (spin it really fast)
-    let rotateNode = SKAction.repeatForever(SKAction.rotate(byAngle: CGFloat(Double.pi/1), duration: 0.1))
-    // Pulse it
-    let pulseNode = SKAction.repeatForever(SKAction.sequence([SKAction.fadeOut(withDuration: 0.1), SKAction.fadeIn(withDuration: 0.1)]))
-    // Pulse colors
-    let colorPulseBlue = SKAction.repeatForever(SKAction.sequence([SKAction.colorize(with: SKColor.blue, colorBlendFactor: 1, duration: 0.1), SKAction.colorize(with: SKColor.white, colorBlendFactor: 1, duration: 0.1)]))
-    let colorPulseRed = SKAction.repeatForever(SKAction.sequence([SKAction.colorize(with: SKColor.red, colorBlendFactor: 1, duration: 0.1), SKAction.colorize(with: SKColor.white, colorBlendFactor: 1, duration: 0.1)]))
-    
+    let slowPulseAction = SKAction.repeatForever(SKAction.sequence([SKAction.fadeOut(withDuration: 1), SKAction.fadeIn(withDuration: 1)]))
+    let fasePulseAction = SKAction.repeatForever(SKAction.sequence([SKAction.fadeOut(withDuration: 0.25), SKAction.fadeIn(withDuration: 0.25)]))
+
     // Player ship
     var playerShip: PlayerShip!
     var playerShipCenterCannon: PlayerCenterLaserCannonState = .railGun
@@ -210,28 +231,39 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // Initilization method
     override init(size: CGSize) {
+        #if DEBUG_OFF
+        print("File: \(#file)\tMethod: \(#function)\tLine: \(#line)")
+        #endif
         super.init(size: size)
         
         // Calculate playable margin.  Put a boarder of 20 pixels on each side
         playableRect = CGRect(x: 20, y: 20, width: size.width-40, height: size.height - hudHeight-40)
         playerBulletFireRateInterval = TimeInterval(1.0 / playerBulletsPerSecond)
         enemyBulletFireRateInterval = TimeInterval(1.0 / enemyBulletsPerSecond)
-
+        
+        // Set the starting wave
+        wave = startingWave < 2 ? 0 : startingWave - 1
+        
         // Setup the initial game state
         gameState = .gameOver
         // Setup the starting screen
         setupSceneLayers()
         setUpUI()
-        setupEntities()
-        
+
         SKTAudio.sharedInstance().playBackgroundMusic("bgmusic.mp3", 0.0)
     }
 
     required init(coder aDecoder: NSCoder) {
+        #if DEBUG_OFF
+        print("File: \(#file)\tMethod: \(#function)\tLine: \(#line)")
+        #endif
         fatalError("init(coder:) has not been implemented")
     }
     
     override func didMove(to view: SKView) {
+        #if DEBUG_OFF
+        print("File: \(#file)\tMethod: \(#function)\tLine: \(#line)")
+        #endif
         physicsWorld.gravity = CGVector(dx: 0, dy: 0)
         physicsWorld.contactDelegate = self
     }
@@ -240,27 +272,33 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // TouchBegan
     // Notes:  This method is called when the user touches the screen
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        #if DEBUG_OFF
+        print("File: \(#file)\tMethod: \(#function)\tLine: \(#line)")
+        #endif
         switch (gameState) {
-        case .gameOver:
+        case .gameOver:  // If we are in game over mode, start a new game
             startGame()
             break
-        case .gameRunning:
+        case .gameRunning:  // If we are currently in a game, do nothing
             break
-        case .splashScreen:
+        case .splashScreen:  // If we are at the splash screen, start a new game
             startGame()
             break
-        case .readyToStartWave:
+        case .readyToStartWave:  // If we are waiting to start a wave, then start it
             startNextWave()
             break
-        case .waveComplete:
+        case .waveComplete:  // If we are at a wave complete, ignore it
             break
-        case .transitioning:
+        case .transitioning:  // IF we are transitioning, keep transitioning
             transitionPlayer()
             break
         }
     }
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        #if DEBUG_OFF
+        print("File: \(#file)\tMethod: \(#function)\tLine: \(#line)")
+        #endif
         let touch = (touches as NSSet).anyObject() as! UITouch
         let currentPoint = touch.location(in: self)
         previousTouchLocation = touch.previousLocation(in: self)
@@ -268,10 +306,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        #if DEBUG_OFF
+        print("File: \(#file)\tMethod: \(#function)\tLine: \(#line)")
+        #endif
         deltaPoint = CGPoint.zero
     }
     
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        #if DEBUG_OFF
+        print("File: \(#file)\tMethod: \(#function)\tLine: \(#line)")
+        #endif
         deltaPoint = CGPoint.zero
     }
     
@@ -281,19 +325,21 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // allowed to move as quick as they can so that we try and minimize the finger moving quicker than
     // the player sprite.
     override func update(_ delta: TimeInterval) {
+        #if DEBUG_OFF
+        print("File: \(#file)\tMethod: \(#function)\tLine: \(#line)")
+        #endif
         let currentTime = Date().timeIntervalSince1970
-        
-        // Get the new player ship location
-        var newPoint:CGPoint = playerShip.position + deltaPoint
         
         // BONUS MODE:
         // If we are in bonus mode, and we don't have a bonusStartTime, get the current time
         if bonusMode && bonusStartTime == 0 {
-            bonusStartTime = delta
+            bonusStartTime = currentTime
             lastBonusTimeRemaining = bonusTime
         }
-        if bonusStartTime > 0 {
-            bonusTimeRemaining = bonusTime - Int(delta - bonusStartTime)
+        // If we are in bonus mode and we have time remaining...
+        if (bonusMode && bonusStartTime > 0) {
+            // Figure out the time remaining
+            bonusTimeRemaining = bonusTime - Int(currentTime - bonusStartTime)
             if bonusTimeRemaining < 0 {
                 bonusTimeRemaining = 0
             }
@@ -302,79 +348,21 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             let healthPerTick: Double = ((playerShip.maxHealth*bonusTimeMaxRegenerationPercent)/Double(bonusTime))
             // Calcuate the amount of health to regenerate
             playerShip.health += Double(lastBonusTimeRemaining - bonusTimeRemaining)*healthPerTick
-            
+            // Make sure we don't have too much health
             if (playerShip.health > playerShip.maxHealth) {
                 playerShip.health = playerShip.maxHealth
             }
             lastBonusTimeRemaining = bonusTimeRemaining
         }
-
-
-        var executeEnemyMovement: Bool = true
-        var playerBulletExecutionTimeElapsed: Bool = true
-        var enemyBulletExecutionTimeElapsed: Bool = true
-        
-        // Initiate the last execution time
-        if (lastEnemyExecutionTime == 0) {
-            lastEnemyExecutionTime = currentTime
-        }
-        // Initiate the last player bullet execution time
-        if (playerBulletExecutionTime == 0) {
-            playerBulletExecutionTime = currentTime
-        }
-        // Initiate the last player bullet execution time
-        if (enemyBulletExecutionTime == 0) {
-            enemyBulletExecutionTime = currentTime
-        }
-        // Get the delta from the last time we executed until now
-        let enemyExecutionTimeDelta = currentTime - lastEnemyExecutionTime
-        // Get the delta from the last time we executed until now
-        let playerBulletExecutionTimeDelta = currentTime - playerBulletExecutionTime
-        // Get the delta from the last time we executed until now
-        let enemyBulletExecutionTimeDelta = currentTime - enemyBulletExecutionTime
-        
-        // Check to see if we've waited long enough to do our processing.  We multiple this
-        // raw value by the difficulty setting value to increase the time or decease it
-        if (enemyExecutionTimeDelta < (enemyExecutionGovernor * programDifficulty.rawValue)) {
-            //
-            //  Nope, don't move the enemies yet
-            executeEnemyMovement = false
-        } else {
-            //
-            // Yes we've waited long enough, store the new execution time
-            lastEnemyExecutionTime = currentTime
-        }
-        // Check to see if we've waited long enough to do our processing.  We multiple this
-        // raw value by the difficulty setting value to increase the time or decease it
-        if (playerBulletExecutionTimeDelta < (playerBulletFireRateInterval)) {
-            //
-            //  Nope, don't move the enemies yet
-            playerBulletExecutionTimeElapsed = false
-        } else {
-            //
-            // Yes we've waited long enough, store the new execution time
-            playerBulletExecutionTime = currentTime
-        }
-        // Check to see if we've waited long enough to do our processing.  We multiple this
-        // raw value by the difficulty setting value to increase the time or decease it
-        if (enemyBulletExecutionTimeDelta < (enemyBulletFireRateInterval)) {
-            //
-            //  Nope, don't move the enemies yet
-            enemyBulletExecutionTimeElapsed = false
-        } else {
-            //
-            // Yes we've waited long enough, store the new execution time
-            enemyBulletExecutionTime = currentTime
-        }
         
         //
         // Do processes that are being governored (like moving the enemy ships, bullets, etc.)
-        
         switch gameState {
         case (.splashScreen):
             break
         case .readyToStartWave:
             // If we don't have a levelLabel, then we just changed to this games status
+            // Display the level label
             if (levelLabel.parent == nil) {
                 levelLabel.text = "WAVE \(wave+1)"
                 if ((wave+1)%bonusWaveInterval == 0) {
@@ -383,73 +371,68 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 levelLabel.removeAllActions()
                 hudLayerNode.addChild(tapScreenLabel)
                 hudLayerNode.addChild(levelLabel)
-                tapScreenLabel.run(screenPulseAction)
-                levelLabel.run(screenPulseAction)
+                tapScreenLabel.run(slowPulseAction)
+                levelLabel.run(slowPulseAction)
             }
             break
         case (.gameRunning):
+            // Get the new player ship location
+            var newPoint:CGPoint = playerShip.position + deltaPoint
+            
             // Move the player's ship
             _ = newPoint.x.clamp(playableRect.minX, playableRect.maxX)
             _ = newPoint.y.clamp(playableRect.minY,playableRect.maxY)
-
             playerShip.position = newPoint
             deltaPoint = CGPoint.zero
 
+            // If we are in a bonus mode and we need to end it
             if (bonusMode && endBonusMode) {
                 endBonusMode = false
                 bonusTimeRemaining = 0
             }
-            
+            // If we are in a bonus mode
             if (bonusMode) {
+                // Add the count down label if we haven't already
                 if (countdownLabel.parent == nil) {
                     hudLayerNode.addChild(countdownLabel)
                 }
+                // Update the displayed text on the count down label
                 countdownLabel.text = "\(bonusTimeRemaining)"
                 countdownLabel.fontSize = bonusTimeRemaining > 10 ? CGFloat(36) : CGFloat(144)
                 countdownLabel.fontColor = SKColor(red: CGFloat(drand48()),
                                                    green: CGFloat(drand48()), blue: CGFloat(drand48()), alpha: 1.0)
+                // If we are out of time for this bonus
                 if (bonusTimeRemaining == 0) {
-                    gameState = .waveComplete
+                    gameState = .waveComplete  // Change modes
                     // Remove enemies from wave
                     for node in enemyLayerNode.children {
-                        node.removeFromParent()
+                        node.removeFromParent()  // Remove the enemy
                     }
                 }
             }
 
             //
-            // If the player bullet execution time has elapsed, then fire the bullets
-            if (playerBulletExecutionTimeElapsed) {
+            // Player Update:
+            //
+            // Fire the player bullet
+            //
+            // Initiate the last player bullet execution time
+            if (playerBulletExecutionTime == 0) {
+                playerBulletExecutionTime = currentTime
+            }
+            // Get the delta from the last time we executed until now
+            let playerBulletExecutionTimeDelta = currentTime - playerBulletExecutionTime
+            // Check to see if we've waited long enough to do our processing.  We multiple this
+            // raw value by the difficulty setting value to increase the time or decease it
+            if (playerBulletExecutionTimeDelta >= (playerBulletFireRateInterval)) {
                 firePlayerBullets()  // Fire a new set of player bullets
-                playerBulletExecutionTime = 0
-            }
-
-            //
-            // If the enemy execution time has elapsed, then move the enemies
-            if (executeEnemyMovement) {
-                // Loop through all enemy nodes and run their update method.
-                // This causes them to update their position based on their currentWaypoint and position
-                var nodeCounter = 0
-                for node in enemyLayerNode.children {
-                    nodeCounter += 1
-                    let enemy = node as! Enemy
-                    // Update the enemy and let the AI know how long the wait has been
-                    enemy.update(enemyExecutionTimeDelta) // Update the enemy
-                }
-                // If all of the enemies are gone, wave is complete
-                if (nodeCounter == 0) {
-                    gameState = .waveComplete
-                }
                 // Yes we've waited long enough, store the new execution time
-                lastEnemyExecutionTime = 0
-            }
-            //
-            // If the enemy bullet execution time has elapsed, then fire the bullets
-            if (enemyBulletExecutionTimeElapsed) {
-                fireEnemyBullets()  // Fire a new set of player bullets
-                enemyBulletExecutionTime = 0
+                playerBulletExecutionTime = currentTime
             }
 
+            //
+            // Update the player's health
+            //
             // Update the players health label to be the right length based on the players health and also
             // update the color so that the closer to 0 it gets the more red it becomes
             playerHealthLabel.fontColor = SKColor(red: CGFloat(2.0 * (1 - playerShip.health / 100)),
@@ -467,10 +450,28 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 gameState = .gameOver
                 playGameOver() // Play the game over music
             }
+
+            //
+            // Enemy Update:
+            //
+            // Update the enemies (move and fire their weapon
+            //
+            // Loop through all enemy nodes and run their update method.
+            // This causes them to update their position based on their currentWaypoint and position
+            var nodeCounter = 0
+            for node in enemyLayerNode.children {
+                nodeCounter += 1  // Keep track of the number of enemies remaining
+                let enemy = node as! Enemy
+                // Update the enemy and let the AI know how long the wait has been
+                enemy.updateEnemy(bulletNode: enemyBulletLayerNode, playerPosition: playerShip.position) // Update the enemy
+            }
+            // If all of the enemies are gone, wave is complete
+            if (nodeCounter == 0) {
+                gameState = .waveComplete
+            }
             break
         case (.waveComplete):
             // Clear out the last execution times
-            lastEnemyExecutionTime = 0
             playerBulletExecutionTime = 0
             transitionLastExecutionTime = currentTime
             transitionStartExecutionTime = currentTime
@@ -483,8 +484,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             countdownLabel.removeFromParent()
             
             bonusMode = false
-            
-            // printNodes()
             
             // Set the state to transitioning
             gameState = .transitioning
@@ -512,18 +511,23 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 
                 hudLayerNode.addChild(gameOverLabel)
                 hudLayerNode.addChild(tapScreenLabel)
-                tapScreenLabel.run(screenPulseAction)
+                tapScreenLabel.run(slowPulseAction)
+
+                // Force the background to black to override a bug that may leave the screen red from damage.
+                self.run(SKAction.sequence([SKAction.colorize(with: screenBackgroundColor, colorBlendFactor: 1.0, duration: 0), SKAction.removeFromParent()]))
             }
             
             // Set a random color for the game over label
             gameOverLabel.fontColor = SKColor(red: CGFloat(drand48()), green: CGFloat(drand48()), blue: CGFloat(drand48()), alpha: 1.0)
             break
         }
-
     }
     
     // This method is called by the physics engine when two physics body collide
     func didBegin(_ contact: SKPhysicsContact) {
+        #if DEBUG_OFF
+        print("File: \(#file)\tMethod: \(#function)\tLine: \(#line)")
+        #endif
         // Get the nodes that triggered the collision
         let nodeA = contact.bodyA.node
         let nodeB = contact.bodyB.node
@@ -560,34 +564,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 if (bonusMode) {
                     endBonusMode = true
                 }
-
             }
         }
     }
 
-    //
-    // Flash the screen red based upon the damage taken
-    func flashScreenBasedOnDamage(_ color: SKColor, _ damage: Int) {
-        var duration: TimeInterval = 0.25
-        if damage == 1 {
-            duration = 0.05
-        } else if damage == 2 {
-            duration = 0.1
-        } else if damage == 3 {
-            duration = 0.15
-        } else if damage == 4 {
-            duration = 0.2
-        }
-        
-        // Flash the screen red
-        self.run(SKAction.sequence([
-            SKAction.colorize(with: color, colorBlendFactor: 1.0, duration: duration),
-            SKAction.colorize(with: screenBackgroundColor, colorBlendFactor: 1.0, duration: duration), SKAction.removeFromParent()]))
-    }
-    
     // Setup the initial screen node layers
     // Notes:  Here we set the z axis values of the nodes and create the starfield background
     func setupSceneLayers() {
+        #if DEBUG_OFF
+        print("File: \(#file)\tMethod: \(#function)\tLine: \(#line)")
+        #endif
         // Set the node names
         playerLayerNode.name = "PlayerLayerNode"
         hudLayerNode.name = "HUDLayerNode"
@@ -631,10 +617,24 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         addChild(enemyLayerNode)
         addChild(enemyBulletLayerNode)
         addChild(starfieldLayerNode)
+        
+        // Initialize the player ship
+        if (playerShip == nil) {
+            playerShip = PlayerShip(entityPosition: CGPoint(x: size.width / 2, y: 100))
+        }
+        
+        // Add the ship to the parent node and create the particle engine effect
+        if (playerShip.parent == nil) {
+            playerLayerNode.addChild(playerShip)
+            playerShip.createEngine()
+        }
     }
 
     // Setup the user interface
     func setUpUI() {
+        #if DEBUG_OFF
+        print("File: \(#file)\tMethod: \(#function)\tLine: \(#line)")
+        #endif
         let backgroundSize = CGSize(width: size.width, height:hudHeight)
         let hudBarBackground = SKSpriteNode(color: screenBackgroundColor, size: backgroundSize)
         hudBarBackground.position = CGPoint(x:0, y: size.height - hudHeight)
@@ -723,7 +723,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         gameOverLabel.verticalAlignmentMode = .center
         gameOverLabel.position = CGPoint(x: size.width / 2, y: size.height / 2)
         gameOverLabel.text = "GAME OVER";
-
         
         countdownLabel.name = "countdownLabel"
         countdownLabel.fontSize = 100
@@ -746,86 +745,31 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // StartGame
     //   Notes:  This method is called when the system needs to start a new game.
     func startGame() {
-        // Reset the state of the game
-        gameState = .gameRunning
+        #if DEBUG_OFF
+        print("File: \(#file)\tMethod: \(#function)\tLine: \(#line)")
+        #endif
         
         // Setup the entities and reset the score
         score = 0
         funds = 0
-        wave = startingWave // Set the starting level
-        bonusTimeRemaining = 0
-        lastBonusTimeRemaining = 0
-        bonusStartTime = 0
-        
-        updateScore()
-        updateFunds()
-
-        setupEntities()
-        //
-        // Setup initial weapons
-        playerShipCenterCannon = .railGun
-        playerShipWingCannons = .none
-        playerShipTailCannons = .none
-
-        // Upgrade the weapons (if we start on an higher level)
-        upgradeWeapons()
-
-        // Set player health
         playerShip.health = playerShip.maxHealth
-        playerShip.position = CGPoint(x: size.width / 2, y: 100)
         playerShip.ventingPlasma.isHidden = true
         
-        // Remove the game over HUD labels
-        countdownLabel.removeFromParent()
-        gameOverLabel.removeFromParent()
-        tapScreenLabel.removeAllActions()
-        tapScreenLabel.removeFromParent()
-        levelLabel.removeFromParent()
+        // Set the starting wave
+        wave = startingWave < 2 ? 0 : startingWave - 1
         
-        SKTAudio.sharedInstance().setBackgroundMusicVolume(Float(musicVolume)) // Set the background music volume
-    }
-    
-    //
-    // Slowly move the player to the starting location
-    func transitionPlayer() {
-        // Get the current player position
-        var deltas: CGPoint = playerShip.position
-        // Figure out the deltas to the starting position
-        deltas.x = CGFloat(Int(deltas.x - CGFloat(Int((size.width / 2)))))
-        deltas.y = CGFloat(Int(deltas.y - 100))
-        //
-        // First, lets move the x position to the starting coordinates
-        if (deltas.x != 0) {
-            let xmovementDirection: Int = Int(deltas.x / abs(deltas.x))
-            var xmovement = abs(deltas.x)
-            // If we are more than the speed, then we move just the speed
-            if (xmovement > CGFloat(transitionExecutionSpeed)) {
-                xmovement = CGFloat(transitionExecutionSpeed)
-            }
-            playerShip.position = CGPoint(x: CGFloat(Int(playerShip.position.x) - Int(xmovement) * xmovementDirection), y: playerShip.position.y)
-        } else if (deltas.y != 0) {
-            let ymovementDirection: Int = Int(deltas.y / abs(deltas.y))
-            var ymovement = abs(deltas.y)
-            // If we are more than the speed, then we move just the speed
-            if (ymovement > CGFloat(transitionExecutionSpeed)) {
-                ymovement = CGFloat(transitionExecutionSpeed)
-            }
-            playerShip.position = CGPoint(x: playerShip.position.x, y: CGFloat(Int(playerShip.position.y) - Int(ymovement) * ymovementDirection))
-        } else {
-            let transitionDelta = Date().timeIntervalSince1970 - transitionStartExecutionTime
-            // If we've waited the minimum amount of time, then we can change the state
-            if (transitionDelta >= transitionMiminumTime) {
-                gameState = .readyToStartWave
-            }
-        }
+        startNextWave()
     }
     
     //
     // Continue the game by going to the next wave and starting it
     func startNextWave() {
-        // Reset the state of the game
+        #if DEBUG_OFF
+        print("File: \(#file)\tMethod: \(#function)\tLine: \(#line)")
+        #endif
+       // Reset the state of the game
         gameState = .gameRunning
-        
+
         // Move to the next wave
         wave += 1
 
@@ -833,19 +777,21 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         lastBonusTimeRemaining = 0
         bonusStartTime = 0
         
-        // Setup the entities
-        setupEntities()
-        // Upgrade weapons if needed
-        upgradeWeapons()
-
-        // Reset the players health and position
-        playerShip.position = CGPoint(x: size.width / 2, y: 100)
-        
         // Remove the game over HUD labels
+        countdownLabel.removeFromParent()
         gameOverLabel.removeFromParent()
         tapScreenLabel.removeAllActions()
         tapScreenLabel.removeFromParent()
         levelLabel.removeFromParent()
+
+        // Setup the entities (player, enemies)
+        setupEntities()
+        // Upgrade weapons if needed
+        upgradeWeapons()
+
+        // Reset the players position
+        playerShip.position = CGPoint(x: size.width / 2, y: 100)
+        
         
         SKTAudio.sharedInstance().setBackgroundMusicVolume(Float(musicVolume))  // Set the music volume
     }
@@ -853,31 +799,265 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     //
     // Create the individual entities for the game.
     func setupEntities() {
-        // Initialize the player ship
-        if (playerShip == nil) {
-            playerShip = PlayerShip(entityPosition: CGPoint(x: size.width / 2, y: 100))
-        }
+        #if DEBUG_OFF
+        print("File: \(#file)\tMethod: \(#function)\tLine: \(#line)")
+        #endif
 
         // Add the ship to the parent node and create the particle engine effect
         if (playerShip.parent == nil) {
             playerLayerNode.addChild(playerShip)
             playerShip.createEngine()
         }
-        // If we are on a bonus wave, setup that wave specially
-        if (wave%bonusWaveInterval == 0 && wave != 0) {
+        let healthBonus = 5.0 * Double(Int(wave/20))
+        var spawnMinimum = 0.0
+        let spawnDelay = 5.0
+
+        switch (wave%10) {
+        case 1:  // Scout wave
+            addEnemyWave(enemyWave: EnemyWave(title: "Scout ships approaching!", displayTitleDelay: spawnMinimum, type: .Scout, number: 5, hps: 5.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .None), minimumWave: 0)
+            spawnMinimum += 15
+            break
+        case 2:  // Scout + fighters
+            addEnemyWave(enemyWave: EnemyWave(title: "Scout ships approaching!", displayTitleDelay: spawnMinimum, type: .Scout, number: 5, hps: 5.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .None), minimumWave: 0)
+            spawnMinimum += 15
+            addEnemyWave(enemyWave: EnemyWave(title: "Swarmers detected on radar!", displayTitleDelay: spawnMinimum-5, type: .Swarmer, number: 5, hps: 5.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .None), minimumWave: 0)
+            break
+        case 3:  // Scout + fighters + swarmers
+            addEnemyWave(enemyWave: EnemyWave(title: "Scout ships approaching!", displayTitleDelay: spawnMinimum, type: .Scout, number: 5, hps: 5.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .None), minimumWave: 0)
+            spawnMinimum += 15
+            addEnemyWave(enemyWave: EnemyWave(title: "Swarmers detected on radar!", displayTitleDelay: spawnMinimum-5, type: .Swarmer, number: 5, hps: 5.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .None), minimumWave: 0)
+            spawnMinimum += 10
+            addEnemyWave(enemyWave: EnemyWave(title: "Incoming Fighter!", displayTitleDelay: spawnMinimum-5, type: .Fighter, number: 5, hps: 5.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: 10)
+            break
+        case 4:
+            addEnemyWave(enemyWave: EnemyWave(title: "Swarmers detected on radar!", displayTitleDelay: spawnMinimum, type: .Swarmer, number: 5, hps: 5.0 + healthBonus, lives: 2, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .None))
+            spawnMinimum += 10
+            addEnemyWave(enemyWave: EnemyWave(title: "Incoming Fighter!", displayTitleDelay: spawnMinimum-5, type: .Fighter, number: 5, hps: 5.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: 10)
+            spawnMinimum += 10
+            addEnemyWave(enemyWave: EnemyWave(title: "Advanced Swarmers detected on radar!", displayTitleDelay: spawnMinimum-5, type: .AdvancedSwarmer, number: 5, hps: 5.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: 20)
+            spawnMinimum += 10
+            break
+        case 5:  // Scout + fighters + swarmers + boss fighters
+            addEnemyWave(enemyWave: EnemyWave(title: "Swarmers detected on radar!", displayTitleDelay: spawnMinimum, type: .Swarmer, number: 5, hps: 5.0 + healthBonus, lives: 2, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .None), minimumWave: 0)
+            spawnMinimum += 10
+            addEnemyWave(enemyWave: EnemyWave(title: "Incoming Fighter!", displayTitleDelay: spawnMinimum-5, type: .Fighter, number: 5, hps: 5.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: 10)
+            spawnMinimum += 10
+            addEnemyWave(enemyWave: EnemyWave(title: "Advanced Swarmers detected on radar!", displayTitleDelay: spawnMinimum-5, type: .AdvancedSwarmer, number: 10, hps: 5.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: 20)
+            spawnMinimum += 10
+            addEnemyWave(enemyWave: EnemyWave(title: "Incoming Advanced Fighters!", displayTitleDelay: spawnMinimum-5, type: .AdvancedFighter, number: 2, hps: 50.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: 30)
+            spawnMinimum += 10
+            break
+        case 6:
+            addEnemyWave(enemyWave: EnemyWave(title: "Swarmers detected on radar!", displayTitleDelay: spawnMinimum, type: .Swarmer, number: 5, hps: 5.0 + healthBonus, lives: 2, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .None), minimumWave: 0)
+            spawnMinimum += 10
+            addEnemyWave(enemyWave: EnemyWave(title: "Incoming Fighter!", displayTitleDelay: spawnMinimum, type: .Fighter, number: 5, hps: 5.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: 10)
+            spawnMinimum += 10
+            addEnemyWave(enemyWave: EnemyWave(title: "Advanced Swarmers detected on radar!", displayTitleDelay: spawnMinimum-5, type: .AdvancedSwarmer, number: 10, hps: 5.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: 20)
+            spawnMinimum += 10
+            addEnemyWave(enemyWave: EnemyWave(title: "Incoming Advanced Fighters!", displayTitleDelay: spawnMinimum-5, type: .AdvancedFighter, number: 2, hps: 50.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: 30)
+            spawnMinimum += 10
+            break
+        case 7:
+            addEnemyWave(enemyWave: EnemyWave(title: "Swarmers detected on radar!", displayTitleDelay: spawnMinimum, type: .Swarmer, number: 5, hps: 5.0 + healthBonus, lives: 2, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .None), minimumWave: 0)
+            spawnMinimum += 10
+            addEnemyWave(enemyWave: EnemyWave(title: "Incoming Fighter!", displayTitleDelay: spawnMinimum, type: .Fighter, number: 5, hps: 5.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: 10)
+            spawnMinimum += 10
+            addEnemyWave(enemyWave: EnemyWave(title: "Incoming Advanced Swarmers!", displayTitleDelay: spawnMinimum-5, type: .AdvancedSwarmer, number: 5, hps: 5.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: 20)
+            spawnMinimum += 10
+            addEnemyWave(enemyWave: EnemyWave(title: "Incoming Advanced Fighters!", displayTitleDelay: spawnMinimum-5, type: .AdvancedFighter, number: 2, hps: 50.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: 30)
+            spawnMinimum += 10
+            break
+        case 8:
+            addEnemyWave(enemyWave: EnemyWave(title: "Swarmers approaching!", displayTitleDelay: spawnMinimum-5, type: .AdvancedSwarmer, number: 5, hps: 5.0 + healthBonus, lives: 2, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: 0)
+            addEnemyWave(enemyWave: EnemyWave(title: nil, displayTitleDelay: spawnMinimum, type: .Swarmer, number: 10, hps: 5.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .None), minimumWave: 20)
+            spawnMinimum += 10
+            addEnemyWave(enemyWave: EnemyWave(title: "Incoming Fighter!", displayTitleDelay: spawnMinimum, type: .Fighter, number: 5, hps: 5.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: 10)
+            spawnMinimum += 10
+            addEnemyWave(enemyWave: EnemyWave(title: "Incoming Advanced Fighters!", displayTitleDelay: spawnMinimum-5, type: .AdvancedFighter, number: 2, hps: 50.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: 30)
+            spawnMinimum += 10
+            break
+        case 9:  // Scout + fighters + swarmers + boss fighters + boss bombers
+            addEnemyWave(enemyWave: EnemyWave(title: "Swarmers approaching!", displayTitleDelay: spawnMinimum-5, type: .AdvancedSwarmer, number: 5, hps: 5.0 + healthBonus, lives: 2, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: 0)
+            addEnemyWave(enemyWave: EnemyWave(title: nil, displayTitleDelay: spawnMinimum, type: .Swarmer, number: 10, hps: 5.0 + healthBonus, lives: 2, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .None), minimumWave: 20)
+            spawnMinimum += 15
+            addEnemyWave(enemyWave: EnemyWave(title: "Incoming Fighter!", displayTitleDelay: spawnMinimum, type: .Fighter, number: 5, hps: 5.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: 10)
+            spawnMinimum += 15
+            addEnemyWave(enemyWave: EnemyWave(title: "Incoming Advanced Fighters!", displayTitleDelay: spawnMinimum-5, type: .AdvancedFighter, number: 2, hps: 50.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: 30)
+            spawnMinimum += 15
+            addEnemyWave(enemyWave: EnemyWave(title: "Incoming Advanced Stealth Bombers!", displayTitleDelay: spawnMinimum-5, type: .AdvancedBomber, number: 1, hps: 75.0 + healthBonus, lives: 1, spawnDelay: 0, spawnMinimum: spawnMinimum, gunType: .StaticGun), minimumWave: 40)
+            break
+        case 0:     // Bonus
             bonusMode = true
             addBonusEnemies()
-        } else {  // Normal wave
-            // Add enemies to this wave
-            addScouts()
-            addSwarmers()
-            addFighters()
-            addBossBombers()
-            addBossFighters()
+            break
+        default:
+            break
         }
     }
+    
+    // Bonus Levels
+    func addBonusEnemies() {
+        #if DEBUG_OFF
+        print("File: \(#file)\tMethod: \(#function)\tLine: \(#line)")
+        #endif
 
+        addEnemyWave(enemyWave: EnemyWave(title: "Swarmers detected on radar!", displayTitleDelay: 0, type: .Swarmer, number: 15, hps: 5.0, lives: 99, spawnDelay: 5.0, spawnMinimum: 0, gunType: .None))
+        if (wave > 39) {
+            addEnemyWave(enemyWave: EnemyWave(title: nil, displayTitleDelay: 0, type: .AdvancedSwarmer, number: 5, hps: 5.0, lives: 99, spawnDelay: 5, spawnMinimum: 15, gunType: .RailGun))
+        }
+
+    }
+    
+    // Enemy wave method
+    // Note:  This method will add a wave to the current enemy list.  Waves themselves aren't anything special but they add a method
+    //        that we can increase the delays between groups of enemies that attack the user.  You can call this multiple times to
+    //        build the enemy list for the current game wave.
+    func addEnemyWave(enemyWave: EnemyWave, minimumWave: Int = 0) {
+        #if DEBUG_OFF
+        print("File: \(#file)\tMethod: \(#function)\tLine: \(#line)")
+        #endif
+        
+        // If we haven't reached the minimum wave yet, then don't add the enemies.
+        if (wave < minimumWave) {
+            return
+        }
+        
+        // Setup the wave message
+        let waveMessage = SKLabelNode(fontNamed: "Edit Undo Line BRK")
+        waveMessage.name = "waveTitle"
+        waveMessage.fontSize = 24;
+        waveMessage.fontColor = SKColor.white
+        waveMessage.horizontalAlignmentMode = .center
+        waveMessage.verticalAlignmentMode = .center
+        waveMessage.position = CGPoint(x: size.width / 2, y: size.height + 100)  // Hide the text
+        waveMessage.text = enemyWave.title
+        // If we have a wave title, add it to the hud layer
+        if (enemyWave.title != nil) {
+            hudLayerNode.addChild(waveMessage)
+            // Build a custom action that displays the wave title message and then removes it
+            let waveMessageAction: SKAction = SKAction.sequence([SKAction.wait(forDuration: enemyWave.displayTitleDelay), SKAction.move(to: CGPoint(x: size.width / 2, y: size.height / 2), duration: 0.0), SKAction.wait(forDuration: waveTitleDisplayTime), SKAction.removeFromParent()])
+            waveMessage.run(waveMessageAction) // Start the wave title action
+            waveMessage.run(fasePulseAction) // Pulse the text
+        }
+
+        switch(enemyWave.type) {
+        case .Scout:
+            for _ in 0..<enemyWave.number {
+                let enemy = EnemyScout(entityPosition: CGPoint(
+                    x: CGFloat.random(min: playableRect.origin.x, max: playableRect.size.width),
+                    y: playableRect.size.height+100), playableRect: playableRect)
+                let initialWaypoint = CGPoint(x: CGFloat.random(min: playableRect.origin.x, max: playableRect.width), y: CGFloat.random(min: playableRect.height / 2, max: playableRect.height))
+                enemy.aiSteering.updateWaypoint(initialWaypoint)
+                enemy.health = enemyWave.hps
+                enemy.maxHealth = enemy.health
+                enemy.speed = CGFloat(1.0 / programDifficulty.rawValue)
+                enemy.executionTimeGovernor = (enemyExecutionGovernor * programDifficulty.rawValue)
+                enemy.lives = 1 + enemyWave.lives == 0 ? 1 : enemyWave.lives  // At least 1 life
+                enemy.setSpawnDelay(Double(CGFloat.random())*enemyWave.spawnDelay + enemyWave.spawnMinimum)
+                enemy.gunType = enemyWave.gunType
+                enemyLayerNode.addChild(enemy)
+            }
+            break
+        case .Fighter:
+            for _ in 0..<enemyWave.number {
+                let enemy = EnemyFighter(entityPosition: CGPoint(
+                    x: CGFloat.random(min: playableRect.origin.x, max: playableRect.size.width),
+                    y: playableRect.size.height+100), playableRect: playableRect)
+                let initialWaypoint = CGPoint(x: CGFloat.random(min: playableRect.origin.x, max: playableRect.width), y: CGFloat.random(min: playableRect.height / 2, max: playableRect.height))
+                enemy.aiSteering.updateWaypoint(initialWaypoint)
+                enemy.health = enemyWave.hps
+                enemy.maxHealth = enemy.health
+                enemy.speed = CGFloat(1.0 / programDifficulty.rawValue)
+                enemy.executionTimeGovernor = (enemyExecutionGovernor * programDifficulty.rawValue)
+                enemy.lives = 1 + enemyWave.lives == 0 ? 1 : enemyWave.lives  // At least 1 life
+                enemy.setSpawnDelay(Double(CGFloat.random())*enemyWave.spawnDelay + enemyWave.spawnMinimum)
+                enemy.gunType = enemyWave.gunType
+                enemyLayerNode.addChild(enemy)
+            }
+            break
+        case .Swarmer:
+            for _ in 0..<enemyWave.number {
+                let enemy = EnemySwarmer(entityPosition: CGPoint(
+                    x: CGFloat.random(min: playableRect.origin.x, max: playableRect.size.width),
+                    y: playableRect.size.height+100), playableRect: playableRect)
+                let initialWaypoint = CGPoint(x: CGFloat.random(min: playableRect.origin.x, max: playableRect.width), y: CGFloat.random(min: playableRect.height / 2, max: playableRect.height))
+                enemy.aiSteering.updateWaypoint(initialWaypoint)
+                enemy.health = enemyWave.hps
+                enemy.maxHealth = enemy.health
+                enemy.speed = CGFloat(1.0 / programDifficulty.rawValue)
+                enemy.executionTimeGovernor = (enemyExecutionGovernor * programDifficulty.rawValue)
+                enemy.lives = 1 + enemyWave.lives == 0 ? 1 : enemyWave.lives  // At least 1 life
+                enemy.setSpawnDelay(Double(CGFloat.random())*enemyWave.spawnDelay + enemyWave.spawnMinimum)
+                enemy.gunType = enemyWave.gunType
+                enemy.gunFireInterval *= programDifficulty.rawValue
+                enemy.gunBurstFireNumber = 1
+                enemy.gunFireInterval *= programDifficulty.rawValue
+                enemyLayerNode.addChild(enemy)
+            }
+            break
+        case .AdvancedSwarmer:
+            for _ in 0..<enemyWave.number {
+                let enemy = EnemySwarmer(entityPosition: CGPoint(
+                    x: CGFloat.random(min: playableRect.origin.x, max: playableRect.size.width),
+                    y: playableRect.size.height+100), playableRect: playableRect)
+                let initialWaypoint = CGPoint(x: CGFloat.random(min: playableRect.origin.x, max: playableRect.width), y: CGFloat.random(min: playableRect.height / 2, max: playableRect.height))
+                enemy.aiSteering.updateWaypoint(initialWaypoint)
+                enemy.health = enemyWave.hps
+                enemy.maxHealth = enemy.health
+                enemy.speed = CGFloat(1.0 / programDifficulty.rawValue)
+                enemy.executionTimeGovernor = (enemyExecutionGovernor * programDifficulty.rawValue)
+                enemy.lives = 1 + enemyWave.lives == 0 ? 1 : enemyWave.lives  // At least 1 life
+                enemy.setSpawnDelay(Double(CGFloat.random())*enemyWave.spawnDelay + enemyWave.spawnMinimum)
+                enemy.gunType = enemyWave.gunType
+                enemy.gunFireInterval *= programDifficulty.rawValue
+                enemy.gunBurstFireNumber = 5
+                enemy.gunFireInterval *= programDifficulty.rawValue
+                enemyLayerNode.addChild(enemy)
+            }
+            break
+        case .AdvancedFighter:
+            for _ in 0..<enemyWave.number {
+                let enemy = EnemyBossFighter(entityPosition: CGPoint(
+                    x: CGFloat.random(min: playableRect.origin.x, max: playableRect.size.width),
+                    y: playableRect.size.height+100), playableRect: playableRect)
+                let initialWaypoint = CGPoint(x: CGFloat.random(min: playableRect.origin.x, max: playableRect.width), y: CGFloat.random(min: playableRect.height / 2, max: playableRect.height))
+                enemy.aiSteering.updateWaypoint(initialWaypoint)
+                enemy.health = enemyWave.hps
+                enemy.maxHealth = enemy.health
+                enemy.speed = CGFloat(1.0 / programDifficulty.rawValue)
+                enemy.executionTimeGovernor = (enemyExecutionGovernor * programDifficulty.rawValue)
+                enemy.lives = 1 + enemyWave.lives == 0 ? 1 : enemyWave.lives  // At least 1 life
+                enemy.setSpawnDelay(Double(CGFloat.random())*enemyWave.spawnDelay + enemyWave.spawnMinimum)
+                enemy.gunType = enemyWave.gunType
+                enemyLayerNode.addChild(enemy)
+            }
+            break
+        case .AdvancedBomber:
+            for _ in 0..<enemyWave.number {
+                let enemy = EnemyBossBomber(entityPosition: CGPoint(
+                    x: CGFloat.random(min: playableRect.origin.x, max: playableRect.size.width),
+                    y: playableRect.size.height+100), playableRect: playableRect)
+                let initialWaypoint = CGPoint(x: CGFloat.random(min: playableRect.origin.x, max: playableRect.width), y: CGFloat.random(min: playableRect.height / 2, max: playableRect.height))
+                enemy.aiSteering.updateWaypoint(initialWaypoint)
+                enemy.health = enemyWave.hps
+                enemy.maxHealth = enemy.health
+                enemy.speed = CGFloat(1.0 / programDifficulty.rawValue)
+                enemy.executionTimeGovernor = (enemyExecutionGovernor * programDifficulty.rawValue)
+                enemy.lives = 1 + enemyWave.lives == 0 ? 1 : enemyWave.lives  // At least 1 life
+                enemy.setSpawnDelay(Double(CGFloat.random())*enemyWave.spawnDelay + enemyWave.spawnMinimum)
+                enemy.gunType = enemyWave.gunType
+                enemyLayerNode.addChild(enemy)
+            }
+            break
+        default:
+            break
+        }
+    }
+    
     func upgradeWeapons() {
+        #if DEBUG_OFF
+        print("File: \(#file)\tMethod: \(#function)\tLine: \(#line)")
+        #endif
         // Upgrade weapons
         switch (wave) {
         case 0...weaponUpgradeInterval:
@@ -918,7 +1098,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 playerShipWingCannons = .protonLaser
                 playerShipTailCannons = .protonLaser
                 let increaseFirerateBy: Int = (wave - weaponUpgradeInterval*8)/10
-
+                
                 // Keep adding more bullets every 10 levels
                 if (wave%10 == 0) {
                     playerBulletFireRateInterval = (1.0 / Double(playerBulletsPerSecond + Float(increaseFirerateBy)))
@@ -927,233 +1107,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
     }
     
-    // Bonus Levels
-    func addBonusEnemies() {
-        var number: Int = 5 + ((wave+1)/bonusWaveInterval) * 5
-        if (number > enemySwarmersMaximumNumber * 5) {
-            number = enemySwarmersMaximumNumber * 5
-        }
-        for _ in 0..<number {
-            let enemy = EnemySwarmer(entityPosition: CGPoint(
-                x: CGFloat.random(min: playableRect.origin.x, max: playableRect.size.width),
-                y: playableRect.size.height+100), playableRect: playableRect)
-            let initialWaypoint = CGPoint(x: CGFloat.random(min: playableRect.origin.x, max: playableRect.width), y: CGFloat.random(min: playableRect.height / 2, max: playableRect.height))
-            enemy.aiSteering.updateWaypoint(initialWaypoint)
-            enemy.health = 5
-            enemy.maxHealth = 5
-            enemy.collisionDamage = 0
-            enemy.speed = CGFloat(1.0 / programDifficulty.rawValue)
-            enemy.lives = 1 + 99 // For the bonus mode, just keep adding new lives
-            enemy.setSpawnDelay(Double(CGFloat.random())*enemySwarmersSpawnDelay + enemySwarmersSpawnMinimum)
-            enemyLayerNode.addChild(enemy)
-        }
-        
-    }
-
-
-    // Scouts enemy add method:
-    func addScouts() {
-        // If we aren't at the level where they first appear yet, return
-        if (wave < enemyScoutsLevelFirstAppear) {
-            return
-        }
-        // Calculate the number of enemies.  We take the current level, subtract from it the level that they first appeared,
-        // and then divide that by the number of levels we wait to add one.  We add this number to the initial number
-        // to spawn with to get our new number.  If that new number is greater than the maximum number, then use the max.
-        var number: Int = Int(enemyScoutsStartingNumber + (wave - enemyScoutsLevelFirstAppear)/enemyScoutsLevelsToAddAdditional)
-        if (number > enemyScoutsMaximumNumber) {
-            number = enemyScoutsMaximumNumber
-        }
-        // To compute the number of lives, we take the current wave, subtract from it the level that they first appeared,
-        // and then divide that number by the level gain before additional lives.  If this number is greater than then
-        // maximum number of lives we're allowed, then use the max number.
-        var additionalLives: Int = (wave - enemyScoutsLevelFirstAppear)/enemyScoutsLevelGainAdditionalLives
-        if (enemyScoutsMaximumNumberOfAdditioinalLives != 0) {
-            additionalLives = (additionalLives > enemyScoutsMaximumNumberOfAdditioinalLives ? enemyScoutsMaximumNumberOfAdditioinalLives : additionalLives)
-        }
-        
-        // Add enemies
-        for _ in 0..<number {
-            let enemy = EnemyScout(entityPosition: CGPoint(
-                x: CGFloat.random(min: playableRect.origin.x, max: playableRect.size.width),
-                y: playableRect.size.height+100), playableRect: playableRect)
-            let initialWaypoint = CGPoint(x: CGFloat.random(min: playableRect.origin.x, max: playableRect.width), y: CGFloat.random(min: playableRect.height / 2, max: playableRect.height))
-            enemy.aiSteering.updateWaypoint(initialWaypoint)
-            enemy.health = enemyScoutsStartingHPs + enemyScoutsStartingHPs * (Double(wave - enemyScoutsLevelFirstAppear) * enemyScoutsHPStrengthMultiplier)
-            enemy.maxHealth = enemy.health
-            enemy.speed = CGFloat(1.0 / programDifficulty.rawValue)
-            if (wave - enemyScoutsLevelFirstAppear >= enemyScoutsLevelGainAdditionalLives) {
-                enemy.lives = 1 + additionalLives
-            }
-            enemy.setSpawnDelay(Double(CGFloat.random())*enemyScoutSpawnDelay + enemyScoutsSpawnMinimum)
-            enemyLayerNode.addChild(enemy)
-        }
-    }
-    
-    // Swarmers enemy add method:
-    func addSwarmers() {
-        // If we aren't at the level where they first appear yet, return
-        if (wave < enemySwarmersLevelFirstAppear) {
-            return
-        }
-        // Calculate the number of enemies.  We take the current level, subtract from it the level that they first appeared,
-        // and then divide that by the number of levels we wait to add one.  We add this number to the initial number
-        // to spawn with to get our new number.  If that new number is greater than the maximum number, then use the max.
-        var number: Int = enemySwarmersStartingNumber + (wave - enemySwarmersLevelFirstAppear)/enemySwarmersLevelsToAddAdditional
-        if (number > enemySwarmersMaximumNumber) {
-            number = enemySwarmersMaximumNumber
-        }
-        // To compute the number of lives, we take the current wave, subtract from it the level that they first appeared,
-        // and then divide that number by the level gain before additional lives.  If this number is greater than then
-        // maximum number of lives we're allowed, then use the max number.
-        var additionalLives: Int = (enemySwarmersLevelGainAdditionalLives > 0 ? ((wave - enemySwarmersLevelFirstAppear)/enemySwarmersLevelGainAdditionalLives) : 0)
-        additionalLives = (additionalLives > enemySwarmersMaximumNumberOfAdditioinalLives ? enemySwarmersMaximumNumberOfAdditioinalLives : additionalLives)
-        
-        // Add enemies
-        for _ in 0..<number {
-            let enemy = EnemySwarmer(entityPosition: CGPoint(
-                x: CGFloat.random(min: playableRect.origin.x, max: playableRect.size.width),
-                y: playableRect.size.height+100), playableRect: playableRect)
-            let initialWaypoint = CGPoint(x: CGFloat.random(min: playableRect.origin.x, max: playableRect.width), y: CGFloat.random(min: playableRect.height / 2, max: playableRect.height))
-            enemy.aiSteering.updateWaypoint(initialWaypoint)
-            enemy.health = enemySwarmersStartingHPs + enemySwarmersStartingHPs * (Double(wave - enemySwarmersLevelFirstAppear) * enemySwarmersHPStrengthMultiplier)
-            enemy.maxHealth = enemy.health
-            enemy.speed = CGFloat(1.0 / programDifficulty.rawValue)
-            if (wave - enemySwarmersLevelFirstAppear >= enemySwarmersLevelGainAdditionalLives) {
-                enemy.lives = 1 + additionalLives
-            }
-            // Upgrade swarmers so that they can multi fire a rail gun - use a random so you don't know which ones are upgraded
-            if (wave > 20 && Bool.random()) {
-                // Enable the fire mode
-                enemy.railGun = true
-            }
-            enemy.setSpawnDelay(Double(CGFloat.random())*enemySwarmersSpawnDelay + enemySwarmersSpawnMinimum)
-            enemyLayerNode.addChild(enemy)
-        }
-
-    }
-    
-    // Fighter enemy add method:
-    func addFighters() {
-        // If we aren't at the level where they first appear yet, return
-        if (wave < enemyFightersLevelFirstAppear) {
-            return
-        }
-        // Calculate the number of enemies.  We take the current level, subtract from it the level that they first appeared,
-        // and then divide that by the number of levels we wait to add one.  We add this number to the initial number
-        // to spawn with to get our new number.  If that new number is greater than the maximum number, then use the max.
-        var number: Int = enemyFightersStartingNumber + (wave - enemyFightersLevelFirstAppear)/enemyFightersLevelsToAddAdditional
-        if (number > enemyFightersMaximumNumber) {
-            number = enemyFightersMaximumNumber
-        }
-        // To compute the number of lives, we take the current wave, subtract from it the level that they first appeared,
-        // and then divide that number by the level gain before additional lives.  If this number is greater than then
-        // maximum number of lives we're allowed, then use the max number.
-        var additionalLives: Int = (enemyFightersLevelGainAdditionalLives > 0 ? ((wave - enemyFightersLevelFirstAppear)/enemyFightersLevelGainAdditionalLives) : 0)
-        additionalLives = (additionalLives > enemyFightersMaximumNumberOfAdditioinalLives ? enemyFightersMaximumNumberOfAdditioinalLives : additionalLives)
-        
-        // Add mini enemies starting at wave 5
-        if (wave >= enemyFightersLevelFirstAppear) {
-            for _ in 0..<number {
-                let enemy = EnemyFighter(entityPosition: CGPoint(
-                    x: CGFloat.random(min: playableRect.origin.x, max: playableRect.size.width),
-                    y: playableRect.size.height+100), playableRect: playableRect)
-                let initialWaypoint = CGPoint(x: CGFloat.random(min: playableRect.origin.x, max: playableRect.width), y: CGFloat.random(min: playableRect.height / 2, max: playableRect.height))
-                enemy.aiSteering.updateWaypoint(initialWaypoint)
-                enemy.health = enemyFightersStartingHPs + enemyFightersStartingHPs * (Double(wave - enemyFightersLevelFirstAppear) * enemyFightersHPStrengthMultiplier)
-                enemy.maxHealth = enemy.health
-                enemy.speed = CGFloat(1.0 / programDifficulty.rawValue)
-                enemy.railGunFireInterval *= programDifficulty.rawValue
-                enemy.railGunBurstFireNumber = 1
-                enemy.railGunBurstFireCurrentNumber = 0
-                if (wave - enemyFightersLevelFirstAppear >= enemyFightersLevelGainAdditionalLives) {
-                    enemy.lives = 1 + additionalLives
-                }
-                enemy.setSpawnDelay(Double(CGFloat.random())*enemyFightersSpawnDelay + enemyFightersSpawnMinimum)
-                enemyLayerNode.addChild(enemy)
-            }
-        }
-    }
-    
-    // Boss Bombers add method:
-    func addBossBombers() {
-        // If we aren't at the level where they first appear yet, return
-        if (wave < enemyBossBombersLevelFirstAppear) {
-            return
-        }
-        // Calculate the number of enemies.  We take the current level, subtract from it the level that they first appeared,
-        // and then divide that by the number of levels we wait to add one.  We add this number to the initial number
-        // to spawn with to get our new number.  If that new number is greater than the maximum number, then use the max.
-        var number: Int = enemyBossBombersStartingNumber + (wave - enemyBossBombersLevelFirstAppear)/enemyBossBombersLevelsToAddAdditional
-        if (number > enemyBossBombersMaximumNumber) {
-            number = enemyBossBombersMaximumNumber
-        }
-        // To compute the number of lives, we take the current wave, subtract from it the level that they first appeared,
-        // and then divide that number by the level gain before additional lives.  If this number is greater than then
-        // maximum number of lives we're allowed, then use the max number.
-        var additionalLives: Int = (enemyBossBombersLevelGainAdditionalLives > 0 ? ((wave - enemyBossBombersLevelFirstAppear)/enemyBossBombersLevelGainAdditionalLives) : 0)
-        additionalLives = (additionalLives > enemyBossBombersMaximumNumberOfAdditioinalLives ? enemyBossBombersMaximumNumberOfAdditioinalLives : additionalLives)
-        
-        // Add enemies
-        let enemy = EnemyBossBomber(entityPosition: CGPoint(x: CGFloat.random(min: playableRect.origin.x, max:
-            playableRect.size.width), y: playableRect.size.height+100), playableRect: playableRect)
-        let initialWaypoint = CGPoint(x: CGFloat.random(min: playableRect.origin.x, max: playableRect.width), y: CGFloat.random(min: playableRect.height / 2,   max: playableRect.height))
-        enemy.aiSteering.updateWaypoint(initialWaypoint)
-        enemy.health = enemyBossBombersStartingHPs + enemyBossBombersStartingHPs * (Double(wave - enemyBossBombersLevelFirstAppear) * enemyBossBombersHPStrengthMultiplier)
-        enemy.maxHealth = enemy.health
-        enemy.staticGunFireInterval *= programDifficulty.rawValue
-        // Enable the additional lives if we have reached the right level
-        if (wave - enemyBossBombersLevelFirstAppear >= enemyBossBombersLevelGainAdditionalLives) {
-            enemy.lives = 1 + additionalLives
-        }
-        enemy.speed = CGFloat(0.25 / programDifficulty.rawValue)
-        enemy.setSpawnDelay(Double(CGFloat.random())*enemyBossBombersSpawnDelay + enemyBossBombersSpawnMinimum)
-        enemyLayerNode.addChild(enemy)
-    }
-    
-    // Boss Fighters add method:
-    func addBossFighters() {
-        // If we aren't at the level where they first appear yet, return
-        if (wave < enemyBossFightersLevelFirstAppear) {
-            return
-        }
-        // Calculate the number of enemies.  We take the current level, subtract from it the level that they first appeared,
-        // and then divide that by the number of levels we wait to add one.  We add this number to the initial number
-        // to spawn with to get our new number.  If that new number is greater than the maximum number, then use the max.
-        var number: Int = enemyBossFightersStartingNumber + (wave - enemyBossFightersLevelFirstAppear)/enemyBossFightersLevelsToAddAdditional
-        if (number > enemyBossFightersMaximumNumber) {
-            number = enemyBossFightersMaximumNumber
-        }
-        // To compute the number of lives, we take the current wave, subtract from it the level that they first appeared,
-        // and then divide that number by the level gain before additional lives.  If this number is greater than then
-        // maximum number of lives we're allowed, then use the max number.
-        var additionalLives: Int = (enemyBossFightersLevelGainAdditionalLives > 0 ? ((wave - enemyBossFightersLevelFirstAppear)/enemyBossFightersLevelGainAdditionalLives) : 0)
-        additionalLives = (additionalLives > enemyBossFightersMaximumNumberOfAdditioinalLives ? enemyBossFightersMaximumNumberOfAdditioinalLives : additionalLives)
-        
-        // Add boss enemies
-        let enemy = EnemyBossFighter(entityPosition: CGPoint(x: CGFloat.random(min: playableRect.origin.x, max:
-            playableRect.size.width), y: playableRect.size.height+100), playableRect: playableRect)
-        let initialWaypoint = CGPoint(x: CGFloat.random(min: playableRect.origin.x, max: playableRect.width), y: CGFloat.random(min: playableRect.height / 2,   max: playableRect.height))
-        enemy.aiSteering.updateWaypoint(initialWaypoint)
-        enemy.health = enemyBossFightersStartingHPs + enemyBossFightersStartingHPs * (Double(wave - enemyBossFightersLevelFirstAppear) * enemyBossFightersHPStrengthMultiplier)
-        enemy.maxHealth = enemy.maxHealth
-        // Enable the additional lives if we have reached the right level
-        if (wave - enemyBossFightersLevelFirstAppear >= enemyBossFightersLevelGainAdditionalLives) {
-            enemy.lives = 1 + additionalLives
-        }
-        enemy.speed = CGFloat(0.25 / programDifficulty.rawValue)
-        enemy.railGunFireInterval *= programDifficulty.rawValue
-        enemy.railGunBurstFireNumber = 1
-        enemy.railGunBurstFireCurrentNumber = 0
-        enemy.setSpawnDelay(Double(CGFloat.random())*enemyBossFightersSpawnDelay + enemyBossFightersSpawnMinimum)
-        enemyLayerNode.addChild(enemy)
-    }
-    
     //
     // This method fires the bullets in the game.  Each time this is called, it adds another set of bullets
     // to the node depending on the level.  This needs to be upgraded to allow users to purchase
     // new guns.
     func firePlayerBullets() {
+        #if DEBUG_OFF
+        print("File: \(#file)\tMethod: \(#function)\tLine: \(#line)")
+        #endif
         // Fire the player cannons
         //
         // We always have a center forward cannon
@@ -1174,97 +1135,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         playLaserSound()
     }
-
-    //
-    // Fire the enemies bullets
-    func fireEnemyBullets() {
-        let currentTime = Date().timeIntervalSince1970  // Get the current time
-        // Loop through all enemy nodes and run their update method.
-        // This causes them to update their position based on their currentWaypoint and position
-        for node in enemyLayerNode.children {
-            let enemy = node as! Enemy
-            // If the enemy has a rail gun and has spawned
-            if (enemy.railGun && enemy.spawned) {
-                // If the gun has never been fired
-                if enemy.railGunTimeLastFired <= 0.0 {
-                    // Set the time to the current time plus a random amount to mix things up
-                    enemy.railGunTimeLastFired = enemy.spawnTime + Double.random(in: 0..<enemy.railGunFireInterval)
-                }
-                // Get the delta since the last firing
-                let enemyLastFiredDelta = currentTime - enemy.railGunTimeLastFired
-                // If we've exceeded the firing delta
-                if (enemyLastFiredDelta >= enemy.railGunFireInterval) {
-                    let bullet = EnemyBulletRailGun(entityPosition: enemy.position)
-                    enemyBulletLayerNode.addChild(bullet)
-                    let movement1 = CGVector(
-                        dx: (playerShip.position.x - enemy.position.x)*10,
-                        dy: (playerShip.position.y - enemy.position.y)*10
-                    )
-                    // Setup the bullet to move by a vector at a calculated speed
-                    let movement = SKAction.sequence([SKAction.move(by: movement1, duration: getDuration(
-                        pointA: playerShip.position, pointB: enemy.position,
-                        speed: CGFloat(enemyBulletSpeed/programDifficulty.rawValue))), SKAction.removeFromParent()])
-                    // Let's add a lot of special effects to this type of bullet
-                    // Group the actions
-                    let group = SKAction.group([movement, colorPulseRed, pewSound])
-                    // Execute the group
-                    bullet.run(group)
-                    enemy.railGunBurstFireCurrentNumber += 1
-                    if (enemy.railGunBurstFireCurrentNumber >= enemy.railGunBurstFireNumber) {
-                        enemy.railGunBurstFireCurrentNumber = 0
-                        enemy.railGunTimeLastFired = currentTime  // Reset the time to the current time
-                    }
-                }
-            }
-            // If the enemy has a static gun and has spawned
-            if (enemy.staticGun && enemy.spawned) {
-                // If the gun has never been fired
-                if enemy.staticGunTimeLastFired <= 0.0 {
-                    enemy.staticGunTimeLastFired = enemy.spawnTime  // Set the last time fired to the spawn time
-                }
-                // Get the delta since the last firing
-                let enemyLastFiredDelta = currentTime - enemy.staticGunTimeLastFired
-                // If we've exceeded the firing delta
-                if (enemyLastFiredDelta >= enemy.staticGunFireInterval) {
-                    let bullet = EnemyBulletStaticGun(entityPosition: enemy.position)
-                    enemyBulletLayerNode.addChild(bullet)
-                    let movement1 = CGVector(
-                        dx: (playerShip.position.x - enemy.position.x)*10,
-                        dy: (playerShip.position.y - enemy.position.y)*10
-                    )
-                    //
-                    // Setup the bullet to move by a vector at a calculated speed
-                    let movement = SKAction.sequence([SKAction.move(by: movement1, duration: getDuration(
-                        pointA: playerShip.position, pointB: enemy.position,
-                        speed: CGFloat(enemyBulletSpeed/programDifficulty.rawValue))), SKAction.removeFromParent()])
-                    // Let's add a lot of special effects to this type of bullet
-                    // Group the actions
-                    let group = SKAction.group([movement, rotateNode, pulseNode, colorPulseBlue, electricSound])
-                    // Execute the group
-                    bullet.run(group)
-                    // Pulse the screen
-                    self.run(SKAction.sequence([
-                        SKAction.colorize(with: SKColor.darkGray, colorBlendFactor: 1.0, duration: 0.25),
-                        SKAction.colorize(with: screenBackgroundColor, colorBlendFactor: 1.0, duration: 0.25), SKAction.removeFromParent()]))
-                    enemy.staticGunTimeLastFired = currentTime  // Reset the time to the current time
-                }
-            }
-        }
-    }
-    
-    //
-    // Calculate the duration based upon a set speed applied to a given distance
-    func getDuration(pointA:CGPoint,pointB:CGPoint,speed:CGFloat)->TimeInterval {
-        let xDist = (pointB.x - pointA.x)
-        let yDist = (pointB.y - pointA.y)
-        let distance = sqrt((xDist * xDist) + (yDist * yDist));
-        let duration : TimeInterval = TimeInterval(distance/speed)
-        return duration
-    }
     
     //
     // Fire the center forward cannon
     func bulletCenterForward() {
+        #if DEBUG_OFF
+        print("File: \(#file)\tMethod: \(#function)\tLine: \(#line)")
+        #endif
         switch(playerShipCenterCannon) {
         case .railGun:
             let bullet = BulletRailGun(entityPosition: CGPoint(x: playerShip.position.x, y: playerShip.position.y+25))
@@ -1284,6 +1161,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     //
     // Fire the wing cannons forward
     func bulletWingsForward() {
+        #if DEBUG_OFF
+        print("File: \(#file)\tMethod: \(#function)\tLine: \(#line)")
+        #endif
         switch(playerShipWingCannons) {
         case .none:
             break
@@ -1317,6 +1197,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     //
     // Fire the wing cannons backwards
     func bulletWingsBackward() {
+        #if DEBUG_OFF
+        print("File: \(#file)\tMethod: \(#function)\tLine: \(#line)")
+        #endif
         switch(playerShipTailCannons) {
         case .none:
             break
@@ -1350,23 +1233,73 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     //
     // Increase the score
     func increaseScoreBy(_ increment: Int) {
-        score += increment
+        #if DEBUG_OFF
+        print("File: \(#file)\tMethod: \(#function)\tLine: \(#line)")
+        #endif
+       score += increment
         updateScore()
     }
 
     func updateScore() {
+        #if DEBUG_OFF
+        print("File: \(#file)\tMethod: \(#function)\tLine: \(#line)")
+        #endif
         scoreLabel.text = "Score: \(score)"
     }
     
     //
     // Increase the funds
     func increaseFundsBy(_ increment: Int) {
+        #if DEBUG_OFF
+        print("File: \(#file)\tMethod: \(#function)\tLine: \(#line)")
+        #endif
         funds += increment
         updateFunds()
     }
     
     func updateFunds() {
+        #if DEBUG_OFF
+        print("File: \(#file)\tMethod: \(#function)\tLine: \(#line)")
+        #endif
         fundsLabel.text = "Funds: $\(funds)"
+    }
+    
+    //
+    // Slowly move the player to the starting location
+    func transitionPlayer() {
+        #if DEBUG_OFF
+        print("File: \(#file)\tMethod: \(#function)\tLine: \(#line)")
+        #endif
+       // Get the current player position
+        var deltas: CGPoint = playerShip.position
+        // Figure out the deltas to the starting position
+        deltas.x = CGFloat(Int(deltas.x - CGFloat(Int((size.width / 2)))))
+        deltas.y = CGFloat(Int(deltas.y - 100))
+        //
+        // First, lets move the x position to the starting coordinates
+        if (deltas.x != 0) {
+            let xmovementDirection: Int = Int(deltas.x / abs(deltas.x))
+            var xmovement = abs(deltas.x)
+            // If we are more than the speed, then we move just the speed
+            if (xmovement > CGFloat(transitionExecutionSpeed)) {
+                xmovement = CGFloat(transitionExecutionSpeed)
+            }
+            playerShip.position = CGPoint(x: CGFloat(Int(playerShip.position.x) - Int(xmovement) * xmovementDirection), y: playerShip.position.y)
+        } else if (deltas.y != 0) {
+            let ymovementDirection: Int = Int(deltas.y / abs(deltas.y))
+            var ymovement = abs(deltas.y)
+            // If we are more than the speed, then we move just the speed
+            if (ymovement > CGFloat(transitionExecutionSpeed)) {
+                ymovement = CGFloat(transitionExecutionSpeed)
+            }
+            playerShip.position = CGPoint(x: playerShip.position.x, y: CGFloat(Int(playerShip.position.y) - Int(ymovement) * ymovementDirection))
+        } else {
+            let transitionDelta = Date().timeIntervalSince1970 - transitionStartExecutionTime
+            // If we've waited the minimum amount of time, then we can change the state
+            if (transitionDelta >= transitionMiminumTime) {
+                gameState = .readyToStartWave
+            }
+        }
     }
     
     //
@@ -1374,6 +1307,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // Notes:
     //
     func starfieldEmitterNode(speed: CGFloat, lifetime: CGFloat, scale: CGFloat, birthRate: CGFloat, color: SKColor) -> SKEmitterNode {
+        #if DEBUG_OFF
+        print("File: \(#file)\tMethod: \(#function)\tLine: \(#line)")
+        #endif
         // For the stars, we're going to use the 'Helvetica' symbol
         let star = SKLabelNode(fontNamed: "Helvetica")
         star.fontSize = 80.0
@@ -1427,7 +1363,33 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         return emitterNode
     }
     
+    //
+    // Flash the screen red based upon the damage taken
+    func flashScreenBasedOnDamage(_ color: SKColor, _ damage: Int) {
+        #if DEBUG_OFF
+        print("File: \(#file)\tMethod: \(#function)\tLine: \(#line)")
+        #endif
+        var duration: TimeInterval = 0.25
+        if damage == 1 {
+            duration = 0.05
+        } else if damage == 2 {
+            duration = 0.1
+        } else if damage == 3 {
+            duration = 0.15
+        } else if damage == 4 {
+            duration = 0.2
+        }
+        
+        // Flash the screen red
+        self.run(SKAction.sequence([
+            SKAction.colorize(with: color, colorBlendFactor: 1.0, duration: duration),
+            SKAction.colorize(with: screenBackgroundColor, colorBlendFactor: 1.0, duration: duration), SKAction.removeFromParent()]))
+    }
+    
     func printNodes() {
+        #if DEBUG_OFF
+        print("File: \(#file)\tMethod: \(#function)\tLine: \(#line)")
+        #endif
         print("Start:")
 //        for node in self.children {
 //            printNodes(name: node.name ?? "Unknown", node: node)
@@ -1441,6 +1403,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func printNodes(name: String, node: SKNode) {
+        #if DEBUG_OFF
+        print("File: \(#file)\tMethod: \(#function)\tLine: \(#line)")
+        #endif
         for node in node.children {
             let nodeName = node.name ?? "Unknown"
             print("  \(name)->\(nodeName): ")
@@ -1449,22 +1414,35 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func playGameOver() {
+        #if DEBUG_OFF
+        print("File: \(#file)\tMethod: \(#function)\tLine: \(#line)")
+        #endif
         SKTAudio.sharedInstance().setBackgroundMusicVolume(Float(0.0)) // Set the background music volume
         run(gameOverSound)
     }
     
     func playLevelComplete() {
+        #if DEBUG_OFF
+        print("File: \(#file)\tMethod: \(#function)\tLine: \(#line)")
+        #endif
+        
         SKTAudio.sharedInstance().setBackgroundMusicVolume(Float(0.0)) // Set the background music volume
         run(levelCompleteSound)
     }
 
     func playExplodeSound() {
+        #if DEBUG_OFF
+        print("File: \(#file)\tMethod: \(#function)\tLine: \(#line)")
+        #endif
         // Calling SKTAudio directly like this is a slight lag during execution
         //        SKTAudio.sharedInstance().playSoundEffect("explode.wav", specialEffectsVolume)
         run(explodeSound)
     }
     
     func playLaserSound() {
+        #if DEBUG_OFF
+        print("File: \(#file)\tMethod: \(#function)\tLine: \(#line)")
+        #endif
         // Calling SKTAudio directly like this is a slight lag during execution
         //        SKTAudio.sharedInstance().playSoundEffect("laser.wav", laserVolume)
         run(laserSound)

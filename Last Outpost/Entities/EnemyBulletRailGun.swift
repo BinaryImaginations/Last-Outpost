@@ -22,6 +22,7 @@ class EnemyBulletRailGun: Bullet {
         damage = 1
         health = 1
         maxHealth = 1
+
         configureCollisionBody()
     }
     

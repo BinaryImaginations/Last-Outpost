@@ -22,6 +22,7 @@ class EnemyBulletStaticGun: Bullet {
         damage = 25
         health = 1
         maxHealth = 1
+
         configureCollisionBody()
     }
     

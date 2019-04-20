@@ -36,7 +36,11 @@ class EnemySwarmer: Enemy, SKPhysicsContactDelegate {
         super.init(coder: aDecoder)
     }
     
-    init(entityPosition: CGPoint, playableRect: CGRect) {
+    convenience init(entityPosition: CGPoint, playableRect: CGRect) {
+        self.init(entityPosition: entityPosition, playableRect: playableRect, color: SKColor(red:0.5, green:1, blue:1, alpha:1))
+    }
+
+    init(entityPosition: CGPoint, playableRect: CGRect, color: SKColor) {
         
         let entityTexture = EnemySwarmer.generateTexture()!
         super.init(entityPosition: entityPosition, texture: entityTexture, playableRect: playableRect)
@@ -54,56 +58,21 @@ class EnemySwarmer: Enemy, SKPhysicsContactDelegate {
         
         scoreLabel.name = "scoreLabel"
         scoreLabel.fontSize = 25
-        scoreLabel.fontColor = SKColor(red:0.5, green:1, blue:1, alpha:1)
+        scoreLabel.fontColor = color
         scoreLabel.text = String(score)
-        
-        railGun = false
-        railGunFireInterval = 5.0
-        railGunBurstFireNumber = 3
-        railGunBurstFireCurrentNumber = 0
+
+        gunType = .RailGun  // Use a rail gun
+        gunFireInterval = 5.0  // Fire the gun every 5 seconds
+        gunBurstFireNumber = 5  // Fire a burst of 5
+        gunBurstFireGovernor = 0.05  // Seperated by 0.1 seconds per round
         
         // Set a default waypoint. The actual waypoint will be called by whoever created this instance
         aiSteering = AISteering(entity:self, waypoint:CGPoint.zero)
         
         // Changing the maxVelicity and maxSteeringForce will change how an entity moves towards its waypoint.
         // Changing these values can generate some interesting movement effects
-        aiSteering.maxVelocity = 25.0
+        aiSteering.maxVelocity = 20.0
         aiSteering.maxSteeringForce = 0.75
     }
-
-    init(entityPosition: CGPoint, playableRect: CGRect, color: SKColor) {
-        
-        let entityTexture = EnemySwarmer.generateTexture()!
-        super.init(entityPosition: entityPosition, texture: entityTexture, playableRect: playableRect)
-        
-        name = "enemy"
-        score = 10
-        funds = 10
-        lives = 1
-        collisionDamage = 3
-        enemyClass = EnemyClass.mini
-        
-        Enemy.loadSharedAssets()
-        configureCollisionBody()
-        
-        scoreLabel.name = "scoreLabel"
-        scoreLabel.fontSize = 30
-        scoreLabel.fontColor = SKColor(red:0.5, green:1, blue:1, alpha:1)
-        scoreLabel.text = String(score)
-
-        railGun = false
-        railGunFireInterval = 5.0
-        railGunBurstFireNumber = 3
-        railGunBurstFireCurrentNumber = 0
-        
-        // Set a default waypoint. The actual waypoint will be called by whoever created this instance
-        aiSteering = AISteering(entity:self, waypoint:CGPoint.zero)
-        
-        // Changing the maxVelicity and maxSteeringForce will change how an entity moves towards its waypoint.
-        // Changing these values can generate some interesting movement effects
-        aiSteering.maxVelocity = 30.0
-        aiSteering.maxSteeringForce = 0.75
-    }
-   
 }
 

@@ -27,4 +27,10 @@ class GameViewController: UIViewController {
     override var prefersStatusBarHidden: Bool {
     return true
     }
+    
+    //Tell the system you prefer deferring
+    override func preferredScreenEdgesDeferringSystemGestures() -> UIRectEdge {
+        
+        return [.bottom] //Whatever side you want to defer, see UIRectEdge() https://developer.apple.com/documentation/uikit/uirectedge
+    }
 }

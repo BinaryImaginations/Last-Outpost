@@ -71,6 +71,16 @@ class Entity: SKSpriteNode {
         // Overridden by subsclasses to implement actions to be carried out when an entity
         // collides with another entity e.g. PlayerShip or Bullet
     }
+    
+    //
+    // Calculate the duration based upon a set speed applied to a given distance
+    func getDuration(pointA:CGPoint,pointB:CGPoint,speed:CGFloat)->TimeInterval {
+        let xDist = (pointB.x - pointA.x)
+        let yDist = (pointB.y - pointA.y)
+        let distance = sqrt((xDist * xDist) + (yDist * yDist));
+        let duration : TimeInterval = TimeInterval(distance/speed)
+        return duration
+    }
 }
 
 public extension DispatchQueue {
