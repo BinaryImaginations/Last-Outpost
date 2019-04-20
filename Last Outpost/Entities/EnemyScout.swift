@@ -20,7 +20,7 @@ class EnemyScout: Enemy, SKPhysicsContactDelegate {
         DispatchQueue.once(token: SharedTexture.onceToken) {
             let mainShip:SKLabelNode = SKLabelNode(fontNamed: "Arial")
             mainShip.name = "mainship"
-            mainShip.fontSize = 20
+            mainShip.fontSize = 22
             mainShip.fontColor = SKColor.white
             mainShip.text = "(=⚇=)"
             
@@ -57,7 +57,7 @@ class EnemyScout: Enemy, SKPhysicsContactDelegate {
         configureCollisionBody()
         
         scoreLabel.name = "scoreLabel"
-        scoreLabel.fontSize = 20
+        scoreLabel.fontSize = 25
         scoreLabel.fontColor = color
         scoreLabel.text = String(score)
 
