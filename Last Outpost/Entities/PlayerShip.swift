@@ -37,6 +37,7 @@ class PlayerShip: Entity {
         configureCollisionBody()
         ventingPlasma.isHidden = true
         damageEmitter.isHidden = true
+
         self.addChild(ventingPlasma)
         self.addChild(damageEmitter)
     }
@@ -76,19 +77,34 @@ class PlayerShip: Entity {
             wings.zRotation = CGFloat(180).degreesToRadians()
             wings.zPosition = mainShip.zPosition - 1
 
-            let guns = SKLabelNode(fontNamed: "PF Tempesta Seven")
-            guns.name = "guns"
-            guns.fontSize = 30
+            let forwardGuns = SKLabelNode(fontNamed: "PF Tempesta Seven")
+            forwardGuns.name = "guns"
+            forwardGuns.fontSize = 30
             // wings.text = "< >"
-            guns.text = "∏"
-            guns.fontColor = SKColor.blue
-            guns.position = CGPoint(x: 0, y: 18)
-            guns.yScale = 0.75
-            guns.xScale = 2.0
+            forwardGuns.text = "∏"
+            forwardGuns.fontColor = SKColor.blue
+            forwardGuns.position = CGPoint(x: 0, y: 10)
+            forwardGuns.yScale = 0.75
+            forwardGuns.xScale = 2.0
             // 4
-            guns.zRotation = CGFloat(180).degreesToRadians()
-            guns.zPosition = mainShip.zPosition - 2
-
+            forwardGuns.zRotation = CGFloat(180).degreesToRadians()
+            forwardGuns.zPosition = mainShip.zPosition - 2
+            forwardGuns.isHidden = false
+            
+            let rearGuns = SKLabelNode(fontNamed: "PF Tempesta Seven")
+            rearGuns.name = "guns"
+            rearGuns.fontSize = 30
+            // wings.text = "< >"
+            rearGuns.text = "∏"
+            rearGuns.fontColor = SKColor.orange
+            rearGuns.position = CGPoint(x: 0, y: -24)
+            rearGuns.yScale = 0.75
+            rearGuns.xScale = 1.5
+            // 4
+            rearGuns.zRotation = CGFloat(0).degreesToRadians()
+            rearGuns.zPosition = mainShip.zPosition - 2
+            rearGuns.isHidden = false;
+            
             let decoration = SKLabelNode(fontNamed: "PF Tempesta Seven")
             decoration.alpha = 1.0
             decoration.name = "guns"
@@ -102,8 +118,9 @@ class PlayerShip: Entity {
             // 4
             decoration.zPosition = mainShip.zPosition + 1
 
+            mainShip.addChild(forwardGuns)
+            mainShip.addChild(rearGuns)
             mainShip.addChild(wings)
-            mainShip.addChild(guns)
             mainShip.addChild(decoration)
             // 5
             let textureView = SKView()
@@ -192,5 +209,4 @@ class PlayerShip: Entity {
         engineEmitter!.targetNode = mainScene.starfieldLayerNode
 
     }
-    
 }

@@ -29,7 +29,7 @@ class GameViewController: UIViewController {
     }
     
     //Tell the system you prefer deferring
-    override func preferredScreenEdgesDeferringSystemGestures() -> UIRectEdge {
+    override var preferredScreenEdgesDeferringSystemGestures: UIRectEdge {
         
         return [.bottom] //Whatever side you want to defer, see UIRectEdge() https://developer.apple.com/documentation/uikit/uirectedge
     }

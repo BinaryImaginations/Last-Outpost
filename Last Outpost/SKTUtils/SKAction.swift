@@ -11,7 +11,7 @@ import AVFoundation
 
 
 public extension SKAction {
-    public class func playSoundFileNamed(fileName: String, atVolume: Float, waitForCompletion: Bool) -> SKAction {
+    class func playSoundFileNamed(fileName: String, atVolume: Float, waitForCompletion: Bool) -> SKAction {
         
         do {
             let player: AVAudioPlayer = try AVAudioPlayer(data: BundleAudioBuffer.get(fileName)!)

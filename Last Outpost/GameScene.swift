@@ -144,73 +144,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         var gunType: Enemy.GunType = .None
     }
     
-   
-//    //   Scouts
-//    var enemyScoutsStartingNumber: Int = 5
-//    var enemyScoutsStartingHPs: Double = 5.0
-//    var enemyScoutsHPStrengthMultiplier: Double = 0.05
-//    var enemyScoutsHPMax: Double = 15
-//    var enemyScoutsLevelToAddAdditional: Int = 5
-//    var enemyScoutsMaximumNumber: Int = 10
-//    var enemyScoutsLevelGainAdditionalLives: Int = 10
-//    var enemyScoutsMaximumNumberOfAdditioinalLives: Int = 3
-//    var enemyScoutSpawnDelay: Double = 2.0
-//    var enemyScoutsSpawnMinimum: Double = 0.0
-//
-//    //
-//    // Need to fix these like the Scouts
-//    //
-//
-//    //   Swarmers
-//    var enemySwarmersLevelFirstAppear: Int = 5
-//    var enemySwarmersStartingNumber: Int = 3
-//    var enemySwarmersStartingHPs: Double = 3.0
-//    var enemySwarmersHPStrengthMultiplier: Double = 0.05
-//    var enemySwarmersLevelToAddAdditional: Int = 5
-//    var enemySwarmersMaximumNumber: Int = 20
-//    var enemySwarmersLevelGainAdditionalLives: Int = 1
-//    var enemySwarmersLevelToEnableGuns: Int = 20
-//    var enemySwarmersMaximumNumberOfAdditioinalLives: Int = 0
-//    var enemySwarmersSpawnDelay: Double = 7.5
-//    var enemySwarmersSpawnMinimum: Double = 0.5
-//
-//    //   Fighters
-//    var enemyFightersLevelFirstAppear: Int = 10
-//    var enemyFightersStartingNumber: Int = 2
-//    var enemyFightersStartingHPs: Double = 7.0
-//    var enemyFightersHPStrengthMultiplier: Double = 0.05
-//    var enemyFightersLevelToAddAdditional: Int = 5
-//    var enemyFightersMaximumNumber: Int = 10
-//    var enemyFightersLevelGainAdditionalLives: Int = 20
-//    var enemyFightersMaximumNumberOfAdditioinalLives: Int = 2
-//    var enemyFightersSpawnDelay: Double = 5.0
-//    var enemyFightersSpawnMinimum: Double = 4.0
-//
-//    //   Boss Fighter
-//    var enemyBossFightersLevelFirstAppear: Int = 19
-//    var enemyBossFightersStartingNumber: Int = 1
-//    var enemyBossFightersStartingHPs: Double = 25.0
-//    var enemyBossFightersHPStrengthMultiplier: Double = 0.1
-//    var enemyBossFightersLevelInterval: Int = 10
-//    var enemyBossFightersLevelToAddAdditional: Int = 10
-//    var enemyBossFightersMaximumNumber: Int = 5
-//    var enemyBossFightersLevelGainAdditionalLives: Int = 20
-//    var enemyBossFightersMaximumNumberOfAdditioinalLives: Int = 1
-//    var enemyBossFightersSpawnDelay: Double = 5.0
-//    var enemyBossFightersSpawnMinimum: Double = 5.0
-//
-//    //   Boss Bombers
-//    var enemyBossBombersLevelFirstAppear: Int = 29
-//    var enemyBossBombersStartingNumber: Int = 1
-//    var enemyBossBombersStartingHPs: Double = 50.0
-//    var enemyBossBombersHPStrengthMultiplier: Double = 0.1
-//    var enemyBossBombersLevelToAddAdditional: Int = 10
-//    var enemyBossBombersMaximumNumber: Int = 4
-//    var enemyBossBombersLevelGainAdditionalLives: Int = 20
-//    var enemyBossBombersMaximumNumberOfAdditioinalLives: Int = 1
-//    var enemyBossBombersSpawnDelay: Double = 5.0
-//    var enemyBossBombersSpawnMinimum: Double = 10.0
-    
     var laserSound: SKAction = SKAction.sequence([SKAction.playSoundFileNamed("laser.wav", waitForCompletion: false), SKAction.removeFromParent()])
     var explodeSound:  SKAction = SKAction.sequence([SKAction.playSoundFileNamed(fileName: "explode.wav",  atVolume: 0.8, waitForCompletion: false), SKAction.removeFromParent()])
     var levelCompleteSound:  SKAction = SKAction.sequence([SKAction.playSoundFileNamed(fileName: "levelcomplete.mp3", atVolume: 1.0, waitForCompletion: false), SKAction.removeFromParent()])
@@ -365,8 +298,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             // Display the level label
             if (levelLabel.parent == nil) {
                 levelLabel.text = "WAVE \(wave+1)"
-                if ((wave+1)%bonusWaveInterval == 0) {
-                    levelLabel.text = "WAVE \(wave+1): BONUS WAVE"
+                // If the next wave is the bonus wave and we aren't already in a bonus wave,
+                // change the text.  Because we take the wave and -1 from it when we are in
+                // a bonus wave, we will be on the bonus wave level twice - one with the
+                // flag turned off (we will be starting the bonus wave next), and one with
+                // the bonus wave turned on (we are ending the bonus wave).
+                if (wave > 0 && (wave+1)%bonusWaveInterval == 1 && !bonusMode) {
+                    levelLabel.text = "BONUS WAVE"
                 }
                 levelLabel.removeAllActions()
                 hudLayerNode.addChild(tapScreenLabel)
@@ -387,7 +325,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
             // If we are in a bonus mode and we need to end it
             if (bonusMode && endBonusMode) {
-                endBonusMode = false
+                endBonusMode = true
                 bonusTimeRemaining = 0
             }
             // If we are in a bonus mode
@@ -483,8 +421,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             tapScreenLabel.removeFromParent()
             countdownLabel.removeFromParent()
             
-            bonusMode = false
-            
             // Set the state to transitioning
             gameState = .transitioning
             playLevelComplete()
@@ -531,6 +467,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // Get the nodes that triggered the collision
         let nodeA = contact.bodyA.node
         let nodeB = contact.bodyB.node
+        // If either node is NIL, then we don't have a collision
+        if (nodeA == nil || nodeB == nil) {
+            return;
+        }
         // Get the entity (identity) of the nodes
         let nodeAEntity = nodeA as! Entity
         let nodeBEntity = nodeB as! Entity
@@ -729,7 +669,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         countdownLabel.fontColor = SKColor.white
         countdownLabel.horizontalAlignmentMode = .center
         countdownLabel.verticalAlignmentMode = .center
-        countdownLabel.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        countdownLabel.position = CGPoint(x: size.width / 2, y: (size.height / 2) - 50)
         
         // Setup the tap screen message
         tapScreenLabel.name = "tapScreen"
@@ -792,7 +732,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // Reset the players position
         playerShip.position = CGPoint(x: size.width / 2, y: 100)
         
-        
         SKTAudio.sharedInstance().setBackgroundMusicVolume(Float(musicVolume))  // Set the music volume
     }
     
@@ -811,86 +750,110 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let healthBonus = 5.0 * Double(Int(wave/20))
         var spawnMinimum = 0.0
         let spawnDelay = 5.0
-
-        switch (wave%10) {
-        case 1:  // Scout wave
-            addEnemyWave(enemyWave: EnemyWave(title: "Scout ships approaching!", displayTitleDelay: spawnMinimum, type: .Scout, number: 5, hps: 5.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .None), minimumWave: 0)
+        let waveLevels = 5;
+        // Variables used to control the level that enemies appear and the number of lives that they have
+        let level1 = 1;
+        let level2 = waveLevels+1;
+        let level3 = waveLevels*2+1;
+        let level4 = waveLevels*3+1;
+        let level5 = waveLevels*4+1;
+        let lives1 = 1 + (wave / waveLevels) > 4 ? 4 : (wave / waveLevels);
+        let lives2 = 2 + (wave - level2) / waveLevels > 4 ? 4 : (wave - level2) / waveLevels;
+        let lives3 = 2 + (wave - level3) / waveLevels > 4 ? 4 : (wave - level3) / waveLevels;
+        let lives4 = 2 + (wave - level4) / waveLevels > 5 ? 5 : (wave - level4) / waveLevels;
+        let lives5 = 3 + (wave - level5) / waveLevels > 7 ? 7 : (wave - level5) / waveLevels;
+        
+        // If we are on a bonus level, start the bonus mode
+        if (wave > 1 && wave%bonusWaveInterval == 1 && !bonusMode) {
+            bonusMode = true
+            endBonusMode = false
+            addBonusEnemies()
+            wave -= 1 // Reset the level counter so that we still get this level when we exit the bonus mode
+            return;
+        }
+        // Make sure the end bonus level is set
+        bonusMode = false
+        endBonusMode = true
+        
+        switch (wave%waveLevels) {
+          case 1:  // Scout wave
+            addEnemyWave(enemyWave: EnemyWave(title: "Scout ships approaching!", displayTitleDelay: spawnMinimum, type: .Scout, number: 5, hps: 5.0 + healthBonus, lives: lives1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .None), minimumWave: level1)
+            spawnMinimum += 5
+            addEnemyWave(enemyWave: EnemyWave(title: nil, displayTitleDelay: spawnMinimum, type: .Scout, number: 5, hps: 5.0 + healthBonus, lives: lives1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .None), minimumWave: level1)
+            spawnMinimum += 10
+            addEnemyWave(enemyWave: EnemyWave(title: nil, displayTitleDelay: spawnMinimum, type: .Scout, number: 5, hps: 5.0 + healthBonus, lives: lives2, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .None), minimumWave: level2)
+            spawnMinimum += 10
+            addEnemyWave(enemyWave: EnemyWave(title: "Incoming Fighters!", displayTitleDelay: spawnMinimum-5, type: .Fighter, number: 3, hps: 5.0 + healthBonus, lives: lives3, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: level3)
+            spawnMinimum += 10
+            addEnemyWave(enemyWave: EnemyWave(title: nil, displayTitleDelay: spawnMinimum-5, type: .Fighter, number: 3, hps: 5.0 + healthBonus, lives: lives4, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: level4)
+            spawnMinimum += 10
+            addEnemyWave(enemyWave: EnemyWave(title: nil, displayTitleDelay: spawnMinimum-5, type: .Fighter, number: 3, hps: 5.0 + healthBonus, lives: lives5, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: level5)
+            break;
+          case 2:  // Fighter wave
+            addEnemyWave(enemyWave: EnemyWave(title: "Scout ships approaching!", displayTitleDelay: spawnMinimum, type: .Scout, number: 5, hps: 5.0 + healthBonus, lives: lives1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .None), minimumWave: level1)
+            spawnMinimum += 5
+            addEnemyWave(enemyWave: EnemyWave(title: nil, displayTitleDelay: spawnMinimum, type: .Scout, number: 5, hps: 5.0 + healthBonus, lives: lives1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .None), minimumWave: level1)
+            spawnMinimum += 10
+            addEnemyWave(enemyWave: EnemyWave(title: "Incoming Fighters!", displayTitleDelay: spawnMinimum-5, type: .Fighter, number: 3, hps: 5.0 + healthBonus, lives: lives2, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: level2)
+            spawnMinimum += 5
+            addEnemyWave(enemyWave: EnemyWave(title: nil, displayTitleDelay: spawnMinimum-5, type: .Fighter, number: 3, hps: 5.0 + healthBonus, lives: lives3, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: level3)
+            spawnMinimum += 5
+            addEnemyWave(enemyWave: EnemyWave(title: "Swarmers detected on radar!", displayTitleDelay: spawnMinimum-5, type: .Swarmer, number: 5, hps: 5.0 + healthBonus, lives: lives4, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .None), minimumWave: level4)
+            spawnMinimum += 10
+            addEnemyWave(enemyWave: EnemyWave(title: nil, displayTitleDelay: spawnMinimum-5, type: .Swarmer, number: 5, hps: 5.0 + healthBonus, lives: lives5, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .None), minimumWave: level5)
+            break;
+          case 3:  // Swarmer wave
+            addEnemyWave(enemyWave: EnemyWave(title: "Incoming Fighters!", displayTitleDelay: spawnMinimum-5, type: .Fighter, number: 3, hps: 5.0 + healthBonus, lives: lives1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: level1)
+            spawnMinimum += 5
+            addEnemyWave(enemyWave: EnemyWave(title: nil, displayTitleDelay: spawnMinimum-5, type: .Fighter, number: 3, hps: 5.0 + healthBonus, lives: lives1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: level1)
+            spawnMinimum += 10
+            addEnemyWave(enemyWave: EnemyWave(title: "Swarmers detected on radar!", displayTitleDelay: spawnMinimum-5, type: .Swarmer, number: 5, hps: 5.0 + healthBonus, lives: lives2, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .None), minimumWave: level2)
+            spawnMinimum += 7
+            addEnemyWave(enemyWave: EnemyWave(title: nil, displayTitleDelay: spawnMinimum-5, type: .Swarmer, number: 5, hps: 5.0 + healthBonus, lives: lives3, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .None), minimumWave: level3)
+            spawnMinimum += 10
+            addEnemyWave(enemyWave: EnemyWave(title: "Incoming Fighters and Swarmers!", displayTitleDelay: spawnMinimum-5, type: .Fighter, number: 5, hps: 5.0 + healthBonus, lives: lives4, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: level4)
+            addEnemyWave(enemyWave: EnemyWave(title: nil, displayTitleDelay: spawnMinimum-5, type: .Swarmer, number: 5, hps: 5.0 + healthBonus, lives: lives4, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .None), minimumWave: level4)
+            spawnMinimum += 10
+            addEnemyWave(enemyWave: EnemyWave(title: "Advanced Swarmers detected on radar!", displayTitleDelay: spawnMinimum-5, type: .AdvancedSwarmer, number: 5, hps: 5.0 + healthBonus, lives: lives5, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: level5)
+            break;
+          case 4:  // Boss fighter
+            addEnemyWave(enemyWave: EnemyWave(title: "Incoming Fighters and Swarmers!", displayTitleDelay: spawnMinimum-5, type: .Fighter, number: 3, hps: 5.0 + healthBonus, lives: lives1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: level1)
+            addEnemyWave(enemyWave: EnemyWave(title: nil, displayTitleDelay: spawnMinimum-5, type: .Swarmer, number: 3, hps: 5.0 + healthBonus, lives: lives1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .None), minimumWave: level1)
+            spawnMinimum += 10
+            addEnemyWave(enemyWave: EnemyWave(title: "Advanced Swarmers detected on radar!", displayTitleDelay: spawnMinimum-5, type: .AdvancedSwarmer, number: 3, hps: 5.0 + healthBonus, lives: lives2, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: level2)
+            spawnMinimum += 10
+            addEnemyWave(enemyWave: EnemyWave(title: nil, displayTitleDelay: spawnMinimum-5, type: .AdvancedSwarmer, number: 3, hps: 5.0 + healthBonus, lives: lives3, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: level3)
+            spawnMinimum += 10
+            addEnemyWave(enemyWave: EnemyWave(title: "Incoming Advanced Fighters!", displayTitleDelay: spawnMinimum-5, type: .AdvancedFighter, number: 2, hps: 50.0 + healthBonus, lives: lives4, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: level4)
+            spawnMinimum += 10
+            addEnemyWave(enemyWave: EnemyWave(title: nil, displayTitleDelay: spawnMinimum-5, type: .AdvancedSwarmer, number: 3, hps: 5.0 + healthBonus, lives: lives5, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: level5)
+            spawnMinimum += 10
+            addEnemyWave(enemyWave: EnemyWave(title: "Incoming Advanced Fighters!", displayTitleDelay: spawnMinimum-5, type: .AdvancedFighter, number: 2, hps: 50.0 + healthBonus, lives: lives5, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: level5)
+            break;
+          case 0:  // Stealth bomber
+            addEnemyWave(enemyWave: EnemyWave(title: "Incoming Fighters and Swarmers!", displayTitleDelay: spawnMinimum-5, type: .Fighter, number: 3, hps: 5.0 + healthBonus, lives: lives1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: level1)
+            addEnemyWave(enemyWave: EnemyWave(title: nil, displayTitleDelay: spawnMinimum-5, type: .Swarmer, number: 3, hps: 5.0 + healthBonus, lives: lives1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .None), minimumWave: level1)
+            spawnMinimum += 10
+            addEnemyWave(enemyWave: EnemyWave(title: "Advanced Swarmers detected on radar!", displayTitleDelay: spawnMinimum-5, type: .AdvancedSwarmer, number: 3, hps: 5.0 + healthBonus, lives: lives2, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: level2)
+            spawnMinimum += 5
+            addEnemyWave(enemyWave: EnemyWave(title: nil, displayTitleDelay: spawnMinimum-5, type: .AdvancedSwarmer, number: 3, hps: 5.0 + healthBonus, lives: lives3, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: level3)
+            spawnMinimum += 10
+            addEnemyWave(enemyWave: EnemyWave(title: "Incoming Advanced Fighters!", displayTitleDelay: spawnMinimum-5, type: .AdvancedFighter, number: 2, hps: 50.0 + healthBonus, lives: lives3, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: level3)
+            spawnMinimum += 10
+            addEnemyWave(enemyWave: EnemyWave(title: "Radar Jammed!", displayTitleDelay: spawnMinimum-5, type: .AdvancedSwarmer, number: 3, hps: 5.0 + healthBonus, lives: lives4, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: level4)
+            addEnemyWave(enemyWave: EnemyWave(title: nil, displayTitleDelay: spawnMinimum-5, type: .AdvancedBomber, number: 1, hps: 75.0 + healthBonus, lives: lives4, spawnDelay: 0, spawnMinimum: spawnMinimum, gunType: .StaticGun), minimumWave: level4)
+            spawnMinimum += 10
+            addEnemyWave(enemyWave: EnemyWave(title: nil, displayTitleDelay: spawnMinimum-5, type: .Fighter, number: 3, hps: 5.0 + healthBonus, lives: lives5, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: level5)
             spawnMinimum += 15
+            addEnemyWave(enemyWave: EnemyWave(title: nil, displayTitleDelay: spawnMinimum-5, type: .AdvancedSwarmer, number: 3, hps: 5.0 + healthBonus, lives: lives5, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: level5)
+            addEnemyWave(enemyWave: EnemyWave(title: nil, displayTitleDelay: spawnMinimum-5, type: .AdvancedFighter, number: 2, hps: 50.0 + healthBonus, lives: lives5, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: level5)
+            spawnMinimum += 7
+            addEnemyWave(enemyWave: EnemyWave(title: nil, displayTitleDelay: spawnMinimum-5, type: .AdvancedBomber, number: 2, hps: 75.0 + healthBonus, lives: lives5, spawnDelay: 0, spawnMinimum: spawnMinimum, gunType: .StaticGun), minimumWave: level5)
+            addEnemyWave(enemyWave: EnemyWave(title: nil, displayTitleDelay: spawnMinimum-5, type: .AdvancedSwarmer, number: 3, hps: 5.0 + healthBonus, lives: lives5, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: level5)
             break
-        case 2:  // Scout + fighters
-            addEnemyWave(enemyWave: EnemyWave(title: "Scout ships approaching!", displayTitleDelay: spawnMinimum, type: .Scout, number: 5, hps: 5.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .None), minimumWave: 0)
-            spawnMinimum += 15
-            addEnemyWave(enemyWave: EnemyWave(title: "Swarmers detected on radar!", displayTitleDelay: spawnMinimum-5, type: .Swarmer, number: 5, hps: 5.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .None), minimumWave: 0)
-            break
-        case 3:  // Scout + fighters + swarmers
-            addEnemyWave(enemyWave: EnemyWave(title: "Scout ships approaching!", displayTitleDelay: spawnMinimum, type: .Scout, number: 5, hps: 5.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .None), minimumWave: 0)
-            spawnMinimum += 15
-            addEnemyWave(enemyWave: EnemyWave(title: "Swarmers detected on radar!", displayTitleDelay: spawnMinimum-5, type: .Swarmer, number: 5, hps: 5.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .None), minimumWave: 0)
-            spawnMinimum += 10
-            addEnemyWave(enemyWave: EnemyWave(title: "Incoming Fighter!", displayTitleDelay: spawnMinimum-5, type: .Fighter, number: 5, hps: 5.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: 10)
-            break
-        case 4:
-            addEnemyWave(enemyWave: EnemyWave(title: "Swarmers detected on radar!", displayTitleDelay: spawnMinimum, type: .Swarmer, number: 5, hps: 5.0 + healthBonus, lives: 2, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .None))
-            spawnMinimum += 10
-            addEnemyWave(enemyWave: EnemyWave(title: "Incoming Fighter!", displayTitleDelay: spawnMinimum-5, type: .Fighter, number: 5, hps: 5.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: 10)
-            spawnMinimum += 10
-            addEnemyWave(enemyWave: EnemyWave(title: "Advanced Swarmers detected on radar!", displayTitleDelay: spawnMinimum-5, type: .AdvancedSwarmer, number: 5, hps: 5.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: 20)
-            spawnMinimum += 10
-            break
-        case 5:  // Scout + fighters + swarmers + boss fighters
-            addEnemyWave(enemyWave: EnemyWave(title: "Swarmers detected on radar!", displayTitleDelay: spawnMinimum, type: .Swarmer, number: 5, hps: 5.0 + healthBonus, lives: 2, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .None), minimumWave: 0)
-            spawnMinimum += 10
-            addEnemyWave(enemyWave: EnemyWave(title: "Incoming Fighter!", displayTitleDelay: spawnMinimum-5, type: .Fighter, number: 5, hps: 5.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: 10)
-            spawnMinimum += 10
-            addEnemyWave(enemyWave: EnemyWave(title: "Advanced Swarmers detected on radar!", displayTitleDelay: spawnMinimum-5, type: .AdvancedSwarmer, number: 10, hps: 5.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: 20)
-            spawnMinimum += 10
-            addEnemyWave(enemyWave: EnemyWave(title: "Incoming Advanced Fighters!", displayTitleDelay: spawnMinimum-5, type: .AdvancedFighter, number: 2, hps: 50.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: 30)
-            spawnMinimum += 10
-            break
-        case 6:
-            addEnemyWave(enemyWave: EnemyWave(title: "Swarmers detected on radar!", displayTitleDelay: spawnMinimum, type: .Swarmer, number: 5, hps: 5.0 + healthBonus, lives: 2, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .None), minimumWave: 0)
-            spawnMinimum += 10
-            addEnemyWave(enemyWave: EnemyWave(title: "Incoming Fighter!", displayTitleDelay: spawnMinimum, type: .Fighter, number: 5, hps: 5.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: 10)
-            spawnMinimum += 10
-            addEnemyWave(enemyWave: EnemyWave(title: "Advanced Swarmers detected on radar!", displayTitleDelay: spawnMinimum-5, type: .AdvancedSwarmer, number: 10, hps: 5.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: 20)
-            spawnMinimum += 10
-            addEnemyWave(enemyWave: EnemyWave(title: "Incoming Advanced Fighters!", displayTitleDelay: spawnMinimum-5, type: .AdvancedFighter, number: 2, hps: 50.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: 30)
-            spawnMinimum += 10
-            break
-        case 7:
-            addEnemyWave(enemyWave: EnemyWave(title: "Swarmers detected on radar!", displayTitleDelay: spawnMinimum, type: .Swarmer, number: 5, hps: 5.0 + healthBonus, lives: 2, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .None), minimumWave: 0)
-            spawnMinimum += 10
-            addEnemyWave(enemyWave: EnemyWave(title: "Incoming Fighter!", displayTitleDelay: spawnMinimum, type: .Fighter, number: 5, hps: 5.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: 10)
-            spawnMinimum += 10
-            addEnemyWave(enemyWave: EnemyWave(title: "Incoming Advanced Swarmers!", displayTitleDelay: spawnMinimum-5, type: .AdvancedSwarmer, number: 5, hps: 5.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: 20)
-            spawnMinimum += 10
-            addEnemyWave(enemyWave: EnemyWave(title: "Incoming Advanced Fighters!", displayTitleDelay: spawnMinimum-5, type: .AdvancedFighter, number: 2, hps: 50.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: 30)
-            spawnMinimum += 10
-            break
-        case 8:
-            addEnemyWave(enemyWave: EnemyWave(title: "Swarmers approaching!", displayTitleDelay: spawnMinimum-5, type: .AdvancedSwarmer, number: 5, hps: 5.0 + healthBonus, lives: 2, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: 0)
-            addEnemyWave(enemyWave: EnemyWave(title: nil, displayTitleDelay: spawnMinimum, type: .Swarmer, number: 10, hps: 5.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .None), minimumWave: 20)
-            spawnMinimum += 10
-            addEnemyWave(enemyWave: EnemyWave(title: "Incoming Fighter!", displayTitleDelay: spawnMinimum, type: .Fighter, number: 5, hps: 5.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: 10)
-            spawnMinimum += 10
-            addEnemyWave(enemyWave: EnemyWave(title: "Incoming Advanced Fighters!", displayTitleDelay: spawnMinimum-5, type: .AdvancedFighter, number: 2, hps: 50.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: 30)
-            spawnMinimum += 10
-            break
-        case 9:  // Scout + fighters + swarmers + boss fighters + boss bombers
-            addEnemyWave(enemyWave: EnemyWave(title: "Swarmers approaching!", displayTitleDelay: spawnMinimum-5, type: .AdvancedSwarmer, number: 5, hps: 5.0 + healthBonus, lives: 2, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: 0)
-            addEnemyWave(enemyWave: EnemyWave(title: nil, displayTitleDelay: spawnMinimum, type: .Swarmer, number: 10, hps: 5.0 + healthBonus, lives: 2, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .None), minimumWave: 20)
-            spawnMinimum += 15
-            addEnemyWave(enemyWave: EnemyWave(title: "Incoming Fighter!", displayTitleDelay: spawnMinimum, type: .Fighter, number: 5, hps: 5.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: 10)
-            spawnMinimum += 15
-            addEnemyWave(enemyWave: EnemyWave(title: "Incoming Advanced Fighters!", displayTitleDelay: spawnMinimum-5, type: .AdvancedFighter, number: 2, hps: 50.0 + healthBonus, lives: 1, spawnDelay: spawnDelay, spawnMinimum: spawnMinimum, gunType: .RailGun), minimumWave: 30)
-            spawnMinimum += 15
-            addEnemyWave(enemyWave: EnemyWave(title: "Incoming Advanced Stealth Bombers!", displayTitleDelay: spawnMinimum-5, type: .AdvancedBomber, number: 1, hps: 75.0 + healthBonus, lives: 1, spawnDelay: 0, spawnMinimum: spawnMinimum, gunType: .StaticGun), minimumWave: 40)
-            break
-        case 0:     // Bonus
+          default:  // Bonus
             bonusMode = true
             addBonusEnemies()
-            break
-        default:
             break
         }
     }
@@ -901,8 +864,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         print("File: \(#file)\tMethod: \(#function)\tLine: \(#line)")
         #endif
 
-        addEnemyWave(enemyWave: EnemyWave(title: "Swarmers detected on radar!", displayTitleDelay: 0, type: .Swarmer, number: 15, hps: 5.0, lives: 99, spawnDelay: 5.0, spawnMinimum: 0, gunType: .None))
-        if (wave > 39) {
+        addEnemyWave(enemyWave: EnemyWave(title: "Swarmers detected on radar!", displayTitleDelay: 0, type: .Swarmer, number: 15, hps: 5.0, lives: 99, spawnDelay: 0, spawnMinimum: 5, gunType: .None))
+        if (wave > bonusWaveInterval * 4 - 1) {
             addEnemyWave(enemyWave: EnemyWave(title: nil, displayTitleDelay: 0, type: .AdvancedSwarmer, number: 5, hps: 5.0, lives: 99, spawnDelay: 5, spawnMinimum: 15, gunType: .RailGun))
         }
 
@@ -925,7 +888,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // Setup the wave message
         let waveMessage = SKLabelNode(fontNamed: "Edit Undo Line BRK")
         waveMessage.name = "waveTitle"
-        waveMessage.fontSize = 24;
+        waveMessage.fontSize = 26;
         waveMessage.fontColor = SKColor.white
         waveMessage.horizontalAlignmentMode = .center
         waveMessage.verticalAlignmentMode = .center
